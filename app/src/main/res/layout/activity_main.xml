@@ -80,4 +80,14 @@
         tools:layout_editor_absoluteX="-8dp"
         tools:text="@sample/posts.json/data/content" />
 
+    <ImageButton
+        android:id="@+id/like"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/description_like_button"
+        android:src="@drawable/outline_favorite_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/content" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
