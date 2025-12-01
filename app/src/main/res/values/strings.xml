@@ -4,4 +4,5 @@
     <string name="nmedia">NMedia!</string>
     <string name="description_post_author_avatar" translatable="false">Post author avatar</string>
     <string name="description_post_menu" translatable="false">Post menu</string>
+    <string name="description_like_button" translatable="false">like</string>
 </resources>
