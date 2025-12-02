@@ -87,7 +87,66 @@
         android:background="@android:color/transparent"
         android:contentDescription="@string/description_like_button"
         android:src="@drawable/outline_favorite_24"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/content" />
+
+    <TextView
+        android:id="@+id/countlikes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/like"
+        app:layout_constraintTop_toTopOf="@id/like"
+        app:layout_constraintBottom_toBottomOf="@id/like"
+        app:layout_constraintVertical_chainStyle="packed"
+        android:layout_marginStart="8dp"
+        tools:text="11К"
+        android:text=""/>
+
+    <ImageButton
+        android:id="@+id/share"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/outline_share_24"
+        app:layout_constraintStart_toEndOf="@id/like"
+        app:layout_constraintTop_toTopOf="@id/like" />
+
+    <TextView
+        android:id="@+id/countshare"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/share"
+        app:layout_constraintTop_toTopOf="@id/share"
+        app:layout_constraintBottom_toBottomOf="@id/share"
+        app:layout_constraintVertical_chainStyle="packed"
+        android:layout_marginStart="8dp"
+        tools:text="567"
+        android:text=""/>
+
+    <ImageButton
+        android:id="@+id/view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#87CEFA"
+        android:layout_gravity="start"
+        android:layout_marginStart="220dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/outline_visibility_24"
+        app:layout_constraintStart_toEndOf="@id/share"
+        app:layout_constraintTop_toTopOf="@id/share" />
+
+    <TextView
+        android:id="@+id/countview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/view"
+        app:layout_constraintTop_toTopOf="@id/view"
+        app:layout_constraintBottom_toBottomOf="@id/view"
+        app:layout_constraintVertical_chainStyle="packed"
+        android:layout_marginStart="8dp"
+        tools:text="567"
+        android:text=""/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
