@@ -80,73 +80,77 @@
         tools:layout_editor_absoluteX="-8dp"
         tools:text="@sample/posts.json/data/content" />
 
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrierUnderContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="content" />
+
     <ImageButton
         android:id="@+id/like"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:background="@android:color/transparent"
         android:contentDescription="@string/description_like_button"
         android:src="@drawable/outline_favorite_24"
-        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/content" />
+        app:layout_constraintTop_toBottomOf="@id/barrierUnderContent" />
 
     <TextView
         android:id="@+id/countlikes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text=""
+        app:layout_constraintBottom_toBottomOf="@id/like"
         app:layout_constraintStart_toEndOf="@id/like"
         app:layout_constraintTop_toTopOf="@id/like"
-        app:layout_constraintBottom_toBottomOf="@id/like"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:layout_marginStart="8dp"
-        tools:text="11К"
-        android:text=""/>
+        tools:text="19K" />
 
     <ImageButton
         android:id="@+id/share"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
         android:background="@android:color/transparent"
         android:src="@drawable/outline_share_24"
-        app:layout_constraintStart_toEndOf="@id/like"
-        app:layout_constraintTop_toTopOf="@id/like" />
+        app:layout_constraintStart_toEndOf="@id/countlikes"
+        app:layout_constraintTop_toTopOf="@id/countlikes" />
 
     <TextView
         android:id="@+id/countshare"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text=""
+        app:layout_constraintBottom_toBottomOf="@id/share"
         app:layout_constraintStart_toEndOf="@id/share"
         app:layout_constraintTop_toTopOf="@id/share"
-        app:layout_constraintBottom_toBottomOf="@id/share"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:layout_marginStart="8dp"
-        tools:text="567"
-        android:text=""/>
+        tools:text="567" />
 
-    <ImageButton
+    <ImageView
         android:id="@+id/view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTint="#87CEFA"
-        android:layout_gravity="start"
-        android:layout_marginStart="220dp"
+        android:layout_marginEnd="8dp"
         android:background="@android:color/transparent"
+        android:backgroundTint="@color/blue"
         android:src="@drawable/outline_visibility_24"
-        app:layout_constraintStart_toEndOf="@id/share"
-        app:layout_constraintTop_toTopOf="@id/share" />
+        app:layout_constraintBottom_toBottomOf="@id/countview"
+        app:layout_constraintEnd_toStartOf="@id/countview"
+        app:layout_constraintTop_toTopOf="@id/countview" />
+
 
     <TextView
         android:id="@+id/countview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@id/view"
-        app:layout_constraintTop_toTopOf="@id/view"
-        app:layout_constraintBottom_toBottomOf="@id/view"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:layout_marginStart="8dp"
-        tools:text="567"
-        android:text=""/>
+        android:layout_marginEnd="0dp"
+        android:text=""
+        app:layout_constraintBottom_toBottomOf="@id/share"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/share"
+        tools:text="567" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
