@@ -1,4 +1,5 @@
 package ru.netology.nmedia
+
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
@@ -33,33 +34,23 @@ class MainActivity : AppCompatActivity() {
                 this < 1_000 -> this.toString()
 
                 this < 10_000 -> {
-                    val thousands = this / 1_000.0
-                    val hundredsPart = (this % 1_000) / 100
-                    if (hundredsPart > 0) {
-                        String.format("%.1fK", thousands).replace(".0K", "K")
-                    } else {
-                        "${this / 1_000}K"
-                    }
+                    val thousands = this / 1_000
+                    val hundreds = (this % 1_000) / 100
+                    if (hundreds == 0L) "${thousands}K" else "${thousands}.${hundreds}K"
                 }
 
                 this < 1_000_000 -> {
-                    val thousands = this / 1_000
-                    "${thousands}K"
+                    "${this / 1_000}K"
                 }
 
                 this < 10_000_000 -> {
-                    val millions = this / 1_000_000.0
-                    val hundredThousandsPart = (this % 1_000_000) / 100_000
-                    if (hundredThousandsPart > 0) {
-                        String.format("%.1fM", millions).replace(".0M", "M")
-                    } else {
-                        "${this / 1_000_000}M"
-                    }
+                    val millions = this / 1_000_000
+                    val hundredThousands = (this % 1_000_000) / 100_000
+                    if (hundredThousands == 0L) "${millions}M" else "${millions}.${hundredThousands}M"
                 }
 
                 else -> {
-                    val millions = this / 1_000_000
-                    "${millions}M"
+                    "${this / 1_000_000}M"
                 }
             }
         }
@@ -95,28 +86,7 @@ class MainActivity : AppCompatActivity() {
                 post.shares += 1
                 updateCounters()
             }
-        }
-        with(binding) {
-            root.setOnClickListener{
-                Log.d("Click_check!", "Root")
-            }
-            like.setOnClickListener{
-                Log.d("Click_like!","LIKE")
-            }
-            share.setOnClickListener{
-                Log.d("CLICK_SHARE!","Share")
-            }
-            avatar.setOnClickListener{
-                Log.d("Click_AVTAR!","avatar")
-            }
-        }
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
         }
-
     }
-
 }

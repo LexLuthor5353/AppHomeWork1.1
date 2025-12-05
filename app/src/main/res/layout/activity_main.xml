@@ -5,10 +5,9 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:padding="16dp"
+    android:padding="16dp"
     tools:context=".MainActivity"
     tools:ignore="MissingClass">
-
 
     <ImageView
         android:id="@+id/avatar"
@@ -17,6 +16,7 @@
         android:contentDescription="@string/description_post_author_avatar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="24dp"
         app:srcCompat="@drawable/post_avatar_drawable" />
 
     <TextView
@@ -52,7 +52,7 @@
         android:contentDescription="@string/description_post_menu"
         android:src="@drawable/baseline_more_vert_24"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/avatar" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier"
@@ -65,10 +65,9 @@
         android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="16dp"
         android:autoLink="web"
         app:layout_constraintTop_toBottomOf="@id/barrier"
-        tools:layout_editor_absoluteX="-8dp"
         tools:text="@sample/posts.json/data/content" />
 
     <androidx.constraintlayout.widget.Barrier
@@ -82,12 +81,12 @@
         android:id="@+id/like"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:background="@android:color/transparent"
         android:contentDescription="@string/description_like_button"
-        android:src="@drawable/outline_favorite_24"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/barrierUnderContent" />
+        app:layout_constraintTop_toBottomOf="@id/barrierUnderContent"
+        app:srcCompat="@drawable/outline_favorite_24" />
 
     <TextView
         android:id="@+id/countlikes"
@@ -98,16 +97,18 @@
         app:layout_constraintBottom_toBottomOf="@id/like"
         app:layout_constraintStart_toEndOf="@id/like"
         app:layout_constraintTop_toTopOf="@id/like"
-        tools:text="19K" />
+        tools:text="1.2K" />
 
     <ImageButton
         android:id="@+id/share"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:background="@android:color/transparent"
         android:src="@drawable/outline_share_24"
+        app:layout_constraintBottom_toBottomOf="@id/like"
         app:layout_constraintStart_toEndOf="@id/countlikes"
-        app:layout_constraintTop_toTopOf="@id/countlikes" />
+        app:layout_constraintTop_toTopOf="@id/like" />
 
     <TextView
         android:id="@+id/countshare"
@@ -115,33 +116,31 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:text=""
-        app:layout_constraintBottom_toBottomOf="@id/share"
+        app:layout_constraintBottom_toBottomOf="@id/like"
         app:layout_constraintStart_toEndOf="@id/share"
-        app:layout_constraintTop_toTopOf="@id/share"
+        app:layout_constraintTop_toTopOf="@id/like"
         tools:text="567" />
 
     <ImageView
         android:id="@+id/view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:background="@android:color/transparent"
         android:backgroundTint="@color/blue"
         android:src="@drawable/outline_visibility_24"
-        app:layout_constraintBottom_toBottomOf="@id/countview"
+        app:layout_constraintBottom_toBottomOf="@id/like"
         app:layout_constraintEnd_toStartOf="@id/countview"
-        app:layout_constraintTop_toTopOf="@id/countview" />
-
+        app:layout_constraintTop_toTopOf="@id/like" />
 
     <TextView
         android:id="@+id/countview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="0dp"
+        android:layout_marginStart="4dp"
         android:text=""
-        app:layout_constraintBottom_toBottomOf="@id/share"
+        app:layout_constraintBottom_toBottomOf="@id/like"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/share"
-        tools:text="567" />
+        app:layout_constraintTop_toTopOf="@id/like"
+        tools:text="1.2K" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
