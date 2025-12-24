@@ -2,4 +2,8 @@
 <resources>
     <string name="app_name">NMedia!</string>
     <string name="nmedia">NMedia!</string>
+    <string name="remove">remove</string>
+    <string name="empty_text">Text is empty!</string>
+    <string name="content">Input text</string>
+    <string name="edit">edit</string>
 </resources>

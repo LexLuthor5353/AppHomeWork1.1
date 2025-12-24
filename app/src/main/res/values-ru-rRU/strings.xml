@@ -2,4 +2,8 @@
 <resources>
     <string name="app_name">НМедиа!</string>
     <string name="nmedia">НМедиа!</string>
+    <string name="remove">Удалить</string>
+    <string name="empty_text">Текст пустой!</string>
+    <string name="content">Введите текст</string>
+    <string name="edit">Редактировать</string>
 </resources>
