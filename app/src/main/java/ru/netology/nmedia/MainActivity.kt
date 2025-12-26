@@ -25,12 +25,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(
-                v.paddingLeft + systemBars.left,
-                v.paddingTop + systemBars.top,
-                v.paddingRight + systemBars.right,
-                v.paddingBottom + systemBars.bottom
-            )
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
@@ -77,7 +72,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.cancelEditing()
             binding.inputtext.setText("")
             binding.inputtext.clearFocus()
-            binding.close.visibility = android.view.View.GONE
             AndroidUtils.hideKeyboard(binding.inputtext)
         }
 
