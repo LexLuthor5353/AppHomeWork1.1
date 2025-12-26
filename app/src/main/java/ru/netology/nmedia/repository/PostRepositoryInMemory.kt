@@ -1,5 +1,6 @@
 package ru.netology.nmedia.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.dto.Post
@@ -127,10 +128,12 @@ class PostRepositoryInMemoryImpl : PostRepository {
     }
 
     override fun removeById(id: Long) {
+        Log.d("PostRepository", "Удаление id = $id")
         posts = posts.filter { it.id != id }
         data.value = posts
     }
     override fun save(post: Post) {
+        Log.d("PostRepository", "Сохранение id=${post.id}, content='${post.content}'")
         if (post.id == 0L) {
             posts = listOf(post.copy(id = ++nextId, author = "Me")) + posts
         } else {

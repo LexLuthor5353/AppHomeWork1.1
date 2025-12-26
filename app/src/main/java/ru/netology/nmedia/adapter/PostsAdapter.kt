@@ -52,17 +52,21 @@ class PostViewHolder(
             author.text = post.author
             published.text = post.published
             content.text = post.content
-            countlikes.text = post.likes.toLong().formatCount()
-            countshare.text = post.share.toLong().formatCount()
+//            countlikes.text = post.likes.toLong().formatCount()
+//            countshare.text = post.share.toLong().formatCount()
             countview.text = post.view.toLong().formatCount()
+            share.isChecked = post.shared
+            share.text = post.share.toLong().formatCount()
+            like.isChecked = post.likedByMe
+            like.text = post.likes.toLong().formatCount()
 
-            like.setImageResource(
-                if (post.likedByMe) {
-                    R.drawable.baseline_favorite_24
-                } else {
-                    R.drawable.outline_favorite_24
-                }
-            )
+//            like.setImageResource(
+//                if (post.likedByMe) {
+//                    R.drawable.baseline_favorite_24
+//                } else {
+//                    R.drawable.outline_favorite_24
+//                }
+//            )
             like.setOnClickListener {
                 onInteractionListener.onLike(post)
             }
