@@ -13,11 +13,10 @@
     </style>
     
     <style name="Widget.AppTheme.MenuButton" parent="Widget.Material3.Button.TextButton.Icon">
-        <item name="iconTint">@color/menu_sector</item>
-        <item name="android:minWidth">0dp</item>
-        <item name="android:minHeight">0dp</item>
-        <item name="android:insetTop">0dp</item>
-        <item name="android:insetBottom">0dp</item>
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:checkable">false</item>
+        <item name="android:checked">false</item>
     </style>
 
     <style name="Widget.AppTheme.ShareCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
