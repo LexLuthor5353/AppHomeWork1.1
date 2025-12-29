@@ -46,11 +46,12 @@
         style="@style/Widget.AppTheme.MenuButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        app:iconGravity="top"
+        android:gravity="center"
         android:checkable="true"
         android:checked="false"
         android:contentDescription="@string/description_post_menu"
         app:icon="@drawable/ic_menu_selector"
+        app:rippleColor="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/avatar" />
 
@@ -90,40 +91,17 @@
         app:icon="@drawable/ic_like_selector"
         android:checked="false"/>
 
-<!--    <TextView-->
-<!--        android:id="@+id/countlikes"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="8dp"-->
-<!--        android:text=""-->
-<!--        app:layout_constraintBottom_toBottomOf="@id/like"-->
-<!--        app:layout_constraintStart_toEndOf="@id/like"-->
-<!--        app:layout_constraintTop_toTopOf="@id/like"-->
-<!--        tools:text="1.2K" />-->
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/share"
         style="@style/Widget.AppTheme.ShareButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:checkable="true"
         app:icon="@drawable/ic_share_selector"
         app:layout_constraintBottom_toBottomOf="@id/like"
         app:layout_constraintStart_toEndOf="@id/like"
         app:layout_constraintTop_toTopOf="@id/like"
-        android:checked="false"/>
-
-<!--    <TextView-->
-<!--        android:id="@+id/countshare"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="8dp"-->
-<!--        android:text=""-->
-<!--        app:layout_constraintBottom_toBottomOf="@id/like"-->
-<!--        app:layout_constraintStart_toEndOf="@id/share"-->
-<!--        app:layout_constraintTop_toTopOf="@id/like"-->
-<!--        tools:text="567" />-->
+        app:rippleColor="?attr/colorOnSurface"/>
 
     <ImageView
         android:id="@+id/view"

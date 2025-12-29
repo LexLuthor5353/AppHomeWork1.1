@@ -46,7 +46,8 @@
     <ImageButton
         android:id="@+id/save"
         android:padding="@dimen/cardview_compat_inset_shadow"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="@id/inputtext"
+        app:layout_constraintBottom_toBottomOf="@id/inputtext"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/inputtext"
         android:textAlignment="center"
