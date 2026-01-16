@@ -10,10 +10,10 @@
         android:id="@+id/avatar"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:layout_marginTop="24dp"
         android:contentDescription="@string/description_post_author_avatar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="24dp"
         app:srcCompat="@drawable/post_avatar_drawable" />
 
     <TextView
@@ -46,14 +46,14 @@
         style="@style/Widget.AppTheme.MenuButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:gravity="center"
         android:checkable="true"
         android:checked="false"
         android:contentDescription="@string/description_post_menu"
+        android:gravity="center"
         app:icon="@drawable/ic_menu_selector"
-        app:rippleColor="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/avatar" />
+        app:layout_constraintTop_toTopOf="@id/avatar"
+        app:rippleColor="?attr/colorOnSurface" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier"
@@ -78,6 +78,28 @@
         app:barrierDirection="bottom"
         app:constraint_referenced_ids="content" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/videoContainer"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bob"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/content">
+
+        <ImageButton
+            android:id="@+id/videoPlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/outline_motion_play_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/like"
         style="@style/Widget.AppTheme.LikeButton"
@@ -85,11 +107,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:checkable="true"
+        android:checked="false"
         android:contentDescription="@string/description_like_button"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/barrierUnderContent"
         app:icon="@drawable/ic_like_selector"
-        android:checked="false"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/videoContainer" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/share"
@@ -101,7 +123,7 @@
         app:layout_constraintBottom_toBottomOf="@id/like"
         app:layout_constraintStart_toEndOf="@id/like"
         app:layout_constraintTop_toTopOf="@id/like"
-        app:rippleColor="?attr/colorOnSurface"/>
+        app:rippleColor="?attr/colorOnSurface" />
 
     <ImageView
         android:id="@+id/view"
