@@ -6,4 +6,7 @@
     <string name="empty_text">Текст пустой!</string>
     <string name="content">Введите текст</string>
     <string name="edit">Редактировать</string>
+    <string name="description_like_button">Лайк</string>
+    <string name="blank_text_error">Текст пустой</string>
+    <string name="error_empty_content">Не удалось получить текст</string>
 </resources>

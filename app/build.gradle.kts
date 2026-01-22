@@ -48,7 +48,9 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.engage.core)
     implementation(libs.androidx.room.runtime.android)
+    implementation(libs.gson)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
 }

@@ -6,4 +6,7 @@
     <string name="empty_text">Text is empty!</string>
     <string name="content">Input text</string>
     <string name="edit">edit</string>
+    <string name="description_like_button">Like</string>
+    <string name="blank_text_error">Text is blank</string>
+    <string name="error_empty_content">Content is empty!</string>
 </resources>

@@ -8,7 +8,7 @@
     <string name="edit">Редактировать</string>
     <string name="description_post_author_avatar" translatable="false">Post author avatar</string>
     <string name="description_post_menu" translatable="false">Post menu</string>
-    <string name="description_like_button" translatable="false">like</string>
-    <string name="blank_text_error" translatable="false">Text is blank</string>
+    <string name="description_like_button">Лайк</string>
+    <string name="blank_text_error">Текст пустой</string>
     <string name="error_empty_content">Не удалось получить текст</string>
 </resources>
