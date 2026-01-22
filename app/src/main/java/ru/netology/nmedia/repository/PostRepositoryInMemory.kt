@@ -1,140 +1,47 @@
 package ru.netology.nmedia.repository
 
+import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.gson.reflect.TypeToken
 import ru.netology.nmedia.dto.Post
+import com.google.gson.Gson
+import java.lang.reflect.Type
 
-class PostRepositoryInMemoryImpl : PostRepository {
+class PostRepositoryInMemoryImpl(
+    context: Context
+) : PostRepository {
 
-    private var posts = listOf(
-        Post(
-            id = 10,
-            author = "Тест что бы проверить заглушку для видео",
-            content = "Bob https://rutube.ru/video/40b81281ecd7562d9ce5678f99562782/",
-            published = "15.01.2026",
-            likes = 0,
-            likedByMe = false,
-            share = 0,
-            shared = false,
-            view = 0,
-            videolink = "https://rutube.ru/video/40b81281ecd7562d9ce5678f99562782/"
-        ),
-        Post(
-            id = 9,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "Освоение новой профессии — это не только открывающиеся возможности и перспективы, но и настоящий вызов самому себе. Приходится выходить из зоны комфорта и перестраивать привычный образ жизни: менять распорядок дня, искать время для занятий, быть готовым к возможным неудачам в начале пути. В блоге рассказали, как избежать стресса на курсах профпереподготовки → http://netolo.gy/fPD",
-            published = "23 сентября в 10:12",
-            likes = 90,
-            likedByMe = false,
-            share = 55,
-            shared = false,
-            view = 1000
-        ),
-        Post(
-            id = 8,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "Делиться впечатлениями о любимых фильмах легко, а что если рассказать так, чтобы все заскучали \uD83D\uDE34\n",
-            published = "22 сентября в 10:14",
-            likes = 333,
-            likedByMe = false,
-            share = 43,
-            shared = false,
-            view = 1000
-        ),
-        Post(
-            id = 7,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "Таймбоксинг — отличный способ навести порядок в своём календаре и разобраться с делами, которые долго откладывали на потом. Его главный принцип — на каждое дело заранее выделяется определённый отрезок времени. В это время вы работаете только над одной задачей, не переключаясь на другие. Собрали советы, которые помогут внедрить таймбоксинг \uD83D\uDC47\uD83C\uDFFB",
-            published = "22 сентября в 10:12",
-            likes = 70,
-            likedByMe = false,
-            share = 69,
-            shared = false,
-            view = 1000
-        ),
-        Post(
-            id = 6,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "\uD83D\uDE80 24 сентября стартует новый поток бесплатного курса «Диджитал-старт: первый шаг к востребованной профессии» — за две недели вы попробуете себя в разных профессиях и определите, что подходит именно вам → http://netolo.gy/fQ",
-            published = "21 сентября в 10:12",
-            likes = 60,
-            likedByMe = false,
-            share = 15,
-            shared = false,
-            view = 1000
-        ),
-        Post(
-            id = 5,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "Диджитал давно стал частью нашей жизни: мы общаемся в социальных сетях и мессенджерах, заказываем еду, такси и оплачиваем счета через приложения.",
-            published = "20 сентября в 10:14",
-            likes = 193,
-            likedByMe = false,
-            share = 78,
-            shared = false,
-            view = 1000
-        ),
-        Post(
-            id = 4,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "Большая афиша мероприятий осени: конференции, выставки и хакатоны для жителей Москвы, Ульяновска и Новосибирска \uD83D\uDE09",
-            published = "19 сентября в 14:12",
-            likes = 55,
-            likedByMe = false,
-            share = 85,
-            shared = false,
-            view = 1000
-        ),
-        Post(
-            id = 3,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "Языков программирования много, и выбрать какой-то один бывает нелегко. Собрали подборку статей, которая поможет вам начать, если вы остановили свой выбор на JavaScript.",
-            published = "19 сентября в 10:24",
-            likes = 99,
-            likedByMe = false,
-            share = 32,
-            shared = false,
-            view = 1000
-        ),
-        Post(
-            id = 2,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "Знаний хватит на всех: на следующей неделе разбираемся с разработкой мобильных приложений, учимся рассказывать истории и составлять PR-стратегию прямо на бесплатных занятиях \uD83D\uDC47",
-            published = "18 сентября в 10:12",
-            likes = 20,
-            likedByMe = false,
-            share = 1234,
-            shared = false,
-            view = 1000
-        ),
-        Post(
-            id = 1,
-            author = "Нетология. Университет интернет-профессий будущего",
-            content = "Привет, это новая Нетология! Когда-то Нетология начиналась с интенсивов по онлайн-маркетингу. Затем появились курсы по дизайну, разработке, аналитике и управлению. Мы растём сами и помогаем расти студентам: от новичков до уверенных профессионалов. Но самое важное остаётся с нами: мы верим, что в каждом уже есть сила, которая заставляет хотеть больше, целиться выше, бежать быстрее. Наша миссия — помочь встать на путь роста и начать цепочку перемен → http://netolo.gy/fyb",
-            published = "21 мая в 18:36",
-            likes = 999,
-            likedByMe = false,
-            share = 999,
-            shared = false,
-            view = 1234
-        )
-    )
+    private val prefs = context.getSharedPreferences("data", Context.MODE_PRIVATE)
 
-    private var nextId = posts.first().id
+    private var posts = getPosts()
+        set(value) {
+            field = value
+            sync()
+        }
+    private var nextId = getId()
 
     private val data = MutableLiveData(posts)
 
     override fun getAll(): LiveData<List<Post>> = data
     override fun likeById(id: Long) {
         posts = posts.map {
-            if (it.id != id) it else it.copy(likedByMe = !it.likedByMe, likes = if (it.likedByMe) it.likes - 1 else it.likes + 1)
+            if (it.id != id) it else it.copy(
+                likedByMe = !it.likedByMe,
+                likes = if (it.likedByMe) it.likes - 1 else it.likes + 1
+            )
         }
         data.value = posts
     }
-    override fun sharedById(id: Long){
+
+    override fun sharedById(id: Long) {
         posts = posts.map {
-            if (it.id != id) it else it.copy(shared = !it.shared, share = if (it.shared) it.share - 1 else it.share + 1)
+            if (it.id != id) it else it.copy(
+                shared = !it.shared,
+                share = if (it.shared) it.share - 1 else it.share + 1
+            )
         }
         data.value = posts
     }
@@ -144,6 +51,7 @@ class PostRepositoryInMemoryImpl : PostRepository {
         posts = posts.filter { it.id != id }
         data.value = posts
     }
+
     override fun save(post: Post) {
         Log.d("PostRepository", "Сохранение id=${post.id}, content='${post.content}'")
         if (post.id == 0L) {
@@ -158,5 +66,26 @@ class PostRepositoryInMemoryImpl : PostRepository {
             }
         }
         data.value = posts
+    }
+
+    private fun getPosts(): List<Post> = prefs.getString(POSTS_KEY, null)?.let {
+        gson.fromJson(it, postsType)
+    } ?: emptyList()
+
+    private fun getId() = prefs.getLong(ID_KEY, 1L)
+
+    private fun sync() {
+        prefs.edit {
+            putString(POSTS_KEY, gson.toJson(posts))
+            putLong(ID_KEY, nextId)
+        }
+
+    }
+
+    private companion object {
+        const val POSTS_KEY = "posts"
+        const val ID_KEY = "nextId"
+        val gson = Gson()
+        val postsType: Type = object : TypeToken<List<Post>>() {}.type
     }
 }
