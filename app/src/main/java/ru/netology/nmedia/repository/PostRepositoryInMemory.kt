@@ -26,6 +26,7 @@ class PostRepositoryInMemoryImpl(
     private val data = MutableLiveData(posts)
 
     override fun getAll(): LiveData<List<Post>> = data
+
     override fun likeById(id: Long) {
         posts = posts.map {
             if (it.id != id) it else it.copy(
@@ -53,17 +54,11 @@ class PostRepositoryInMemoryImpl(
     }
 
     override fun save(post: Post) {
-        Log.d("PostRepository", "Сохранение id=${post.id}, content='${post.content}'")
         if (post.id == 0L) {
-            posts = listOf(post.copy(id = ++nextId, author = "Me")) + posts
+            val newPost = post.copy(id = nextId++)
+            posts = listOf(newPost) + posts.filter { it.id != newPost.id }
         } else {
-            posts = posts.map {
-                if (it.id == post.id) {
-                    it.copy(content = post.content)
-                } else {
-                    it
-                }
-            }
+            posts = posts.map { if (it.id == post.id) post else it }
         }
         data.value = posts
     }
@@ -79,7 +74,6 @@ class PostRepositoryInMemoryImpl(
             putString(POSTS_KEY, gson.toJson(posts))
             putLong(ID_KEY, nextId)
         }
-
     }
 
     private companion object {
