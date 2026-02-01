@@ -91,10 +91,13 @@ class PostRepositoryFileImpl(
                 file.writeText("[]")
                 posts = emptyList()
             }
+            data.value = posts
         } catch (e: IOException) {
             posts = emptyList()
+            data.value = posts
         } catch (e: Exception) {
             posts = emptyList()
+            data.value = posts
         }
     }
 
