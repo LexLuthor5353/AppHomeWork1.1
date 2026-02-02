@@ -48,7 +48,6 @@ class PostRepositoryInMemoryImpl(
     }
 
     override fun removeById(id: Long) {
-        Log.d("PostRepository", "Удаление id = $id")
         posts = posts.filter { it.id != id }
         data.value = posts
     }
