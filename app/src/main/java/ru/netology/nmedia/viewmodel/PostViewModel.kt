@@ -50,10 +50,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private fun extractVideoLink(content: String): String? {
         val urlRegex = """https?://[^\s]+""".toRegex()
         val matches = urlRegex.findAll(content)
-        return matches
-            .map { it.value }
-            .find { url ->
-                url.contains("rutube.ru", ignoreCase = true)
+        var result: String? = null
+        for (match in matches) {
+            val url = match.value
+            if (url.contains("rutube.ru", ignoreCase = true)) {
+                result = url
+                break
             }
+        }
+        return result
     }
 }
