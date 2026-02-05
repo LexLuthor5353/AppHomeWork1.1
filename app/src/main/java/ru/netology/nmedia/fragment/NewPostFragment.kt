@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
@@ -28,11 +29,22 @@ class NewPostFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+//        val postId = arguments?.getLong("postId", 0L) ?: 0L
+//        val initialContent = arguments?.getString("content") ?: ""
+//
+//        binding.content.setText(initialContent)
+//        binding.content.setSelection(initialContent.length)
         val postId = arguments?.getLong("postId", 0L) ?: 0L
-        val initialContent = arguments?.getString("content") ?: ""
-
-        binding.content.setText(initialContent)
-        binding.content.setSelection(initialContent.length)
+        var text = arguments?.getString("content") ?: ""
+        if (postId == 0L && text.isBlank()) {
+            val prefs = requireActivity().getSharedPreferences("cash", android.content.Context.MODE_PRIVATE)
+            val draft = prefs.getString("post_cash", "") ?: ""
+            if (draft.isNotBlank()) {
+                text = draft
+            }
+        }
+        binding.content.setText(text)
+        binding.content.setSelection(text.length)
 
         binding.save.setOnClickListener {
             val content = binding.content.text.toString().trim()
@@ -48,6 +60,10 @@ class NewPostFragment : Fragment() {
             }
 
             viewModel.save(content)
+            val prefs = requireActivity().getSharedPreferences("cash", android.content.Context.MODE_PRIVATE)
+            val editor = prefs.edit()
+            editor.remove("post_cash")
+            editor.apply()
 
             setFragmentResult("new_post_request_key", bundleOf("refresh" to true))
 
@@ -57,5 +73,14 @@ class NewPostFragment : Fragment() {
         binding.close.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            val text = binding.content.text.toString()
+            val prefs = requireActivity().getSharedPreferences("cash", android.content.Context.MODE_PRIVATE)
+            val editor = prefs.edit()
+            editor.putString("post_cash", text)
+            editor.apply()
+            parentFragmentManager.popBackStack()
+        }
+
     }
 }
