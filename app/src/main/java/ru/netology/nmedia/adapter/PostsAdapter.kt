@@ -20,7 +20,6 @@ interface OnInteractionListener {
     fun onShare(post: Post)
     fun onEdit(post: Post)
     fun onRemove(post: Post)
-    fun onPostClick(post: Post) {}
 }
 
 class PostsAdapter(
@@ -54,15 +53,14 @@ class PostViewHolder(
             share.text = post.share.formatCount()
             countview.text = post.view.formatCount()
 
-            if (post.videolink != null && post.videolink.isNotBlank()) {
-                videoContainer.visibility = android.view.View.VISIBLE
+            videoContainer.visibility = if (post.videolink != null && post.videolink.isNotBlank()) {
+                android.view.View.VISIBLE
             } else {
-                videoContainer.visibility = android.view.View.GONE
+                android.view.View.GONE
             }
 
             videoContainer.setOnClickListener {
-                val url = post.videolink
-                if (url != null) {
+                post.videolink?.let { url ->
                     val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                     val chooser = Intent.createChooser(intent, "Открыть видео в ")
                     if (intent.resolveActivity(it.context.packageManager) != null) {
@@ -93,33 +91,6 @@ class PostViewHolder(
                         }
                     }
                     show()
-                }
-            }
-            content.setOnClickListener {
-                onInteractionListener.onPostClick(post)
-            }
-            author.setOnClickListener {
-                onInteractionListener.onPostClick(post)
-            }
-            published.setOnClickListener {
-                onInteractionListener.onPostClick(post)
-            }
-            avatar.setOnClickListener {
-                onInteractionListener.onPostClick(post)
-            }
-
-            root.setOnClickListener { view ->
-                val viewId = view.id
-                val isLike = viewId == R.id.like
-                val isShare = viewId == R.id.share
-                val isMenu = viewId == R.id.menu
-                val isVideo = viewId == R.id.videoContainer
-                val isVideoPlay = viewId == R.id.videoPlay
-                val isView = viewId == R.id.view
-                val isCountView = viewId == R.id.countview
-                
-                if (!isLike && !isShare && !isMenu && !isVideo && !isVideoPlay && !isView && !isCountView) {
-                    onInteractionListener.onPostClick(post)
                 }
             }
         }

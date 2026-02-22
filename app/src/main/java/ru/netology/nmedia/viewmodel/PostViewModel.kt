@@ -16,8 +16,9 @@ private val empty = Post(
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository = PostRepositoryRoomImpl(
-        AppDb.getInstance(application).postDao())
+    private val db = AppDb.getInstance(application)
+    private val dao = db.postDao()
+    private val repository: PostRepository = PostRepositoryRoomImpl(dao)
     val data = repository.getAll()
     val editer = MutableLiveData(empty)
     fun likeById(id: Long) = repository.likeById(id)
@@ -51,14 +52,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private fun extractVideoLink(content: String): String? {
         val urlRegex = """https?://[^\s]+""".toRegex()
         val matches = urlRegex.findAll(content)
-        var result: String? = null
-        for (match in matches) {
-            val url = match.value
-            if (url.contains("rutube.ru", ignoreCase = true)) {
-                result = url
-                break
+        return matches
+            .map { it.value }
+            .find { url ->
+                url.contains("rutube.ru", ignoreCase = true)
             }
-        }
-        return result
     }
 }
