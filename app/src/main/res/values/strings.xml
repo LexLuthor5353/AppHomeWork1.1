@@ -11,4 +11,9 @@
     <string name="description_like_button">Лайк</string>
     <string name="blank_text_error">Текст пустой</string>
     <string name="error_empty_content">Не удалось получить текст</string>
+    <string name="channel_remote_name" translatable="false">Уведомления</string>
+    <string name="channel_remote_description" translatable="false">Получение push-уведомлений о лайках и новых постах</string>
+    <string name="notification_user_liked">%1$s поставил лайк посту %2$s</string>
+    <string name="new_post_title">%1$s опубликовал новый пост:</string>
+    <string name="tap_to_read_full" translatable="false">Прочесть полностью!</string>
 </resources>

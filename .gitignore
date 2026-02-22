@@ -3,6 +3,9 @@ HELP.md
 .gradle
 build/
 
+# Firebase configuration
+app/google-services.json
+
 ### STS ###
 .apt_generated
 .classpath
