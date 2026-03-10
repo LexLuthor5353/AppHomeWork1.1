@@ -32,12 +32,14 @@ class FeedFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        Log.d("FeedFragment", "onCreateView: started")
         binding = FragmentFeedBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d("FeedFragment", "onViewCreated: called")
 
         adapter = PostsAdapter(object : OnInteractionListener {
             override fun onLike(post: Post) = viewModel.likeById(post.id)
@@ -52,6 +54,7 @@ class FeedFragment : Fragment() {
                 try {
                     sharePostLauncher.launch(Intent.createChooser(shareIntent, null))
                 } catch (e: Exception) {
+                    Log.e("FeedFragment", "Не удалось 'Поделиться'", e)
                 }
             }
 
@@ -66,20 +69,12 @@ class FeedFragment : Fragment() {
             }
 
             override fun onRemove(post: Post) = viewModel.removeById(post.id)
-
-            override fun onPostClick(post: Post) {
-                findNavController().navigate(
-                    R.id.action_feedFragment_to_postFragment,
-                    Bundle().apply {
-                        putLong("postId", post.id)
-                    }
-                )
-            }
         })
 
         binding.list.adapter = adapter
 
         viewModel.data.observe(viewLifecycleOwner) { posts ->
+            Log.d("FeedFragment", "Received ${posts.size} posts from ViewModel")
             adapter.submitList(posts)
         }
 
