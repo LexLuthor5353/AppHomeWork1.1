@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryRoomImpl
+import ru.netology.nmedia.repository.PostRepositoryImpl
 
 private val empty = Post(
     id = 0L,
@@ -18,15 +18,15 @@ private val empty = Post(
 class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val db = AppDb.getInstance(application)
     private val dao = db.postDao()
-    private val repository: PostRepository = PostRepositoryRoomImpl(dao)
+    private val repository: PostRepository = PostRepositoryImpl(dao)
     val data = repository.getAll()
-    val editer = MutableLiveData(empty)
+    val editor = MutableLiveData(empty)
     fun likeById(id: Long) = repository.likeById(id)
     fun sharedById(id: Long) = repository.sharedById(id)
     fun removeById(id: Long) = repository.removeById(id)
 
     fun save(content: String) {
-        val post = editer.value ?: empty
+        val post = editor.value ?: empty
         val trimmedContent = content.trim()
         val videoLink = extractVideoLink(trimmedContent)
 
@@ -38,15 +38,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         repository.save(newPost)
-        editer.value = empty
+        editor.value = empty
     }
 
     fun editById(id: Long) {
         val postToEdit = data.value?.find { it.id == id } ?: return
-        editer.value = postToEdit
+        editor.value = postToEdit
     }
     fun clearEditor() {
-        editer.value = empty
+        editor.value = empty
     }
 
     private fun extractVideoLink(content: String): String? {

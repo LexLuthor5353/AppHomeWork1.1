@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
+    implementation(libs.okhttp)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     ksp(libs.androidx.room.compiler)
@@ -69,6 +70,7 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.play.services)
     coreLibraryDesugaring(libs.desugaring)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
 
 
 }
