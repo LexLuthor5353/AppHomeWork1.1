@@ -45,7 +45,7 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            published.text = post.published
+            published.text = formatPublished(post.published)
             content.text = post.content
             like.isChecked = post.likedByMe
             like.text = post.likes.formatCount()
@@ -94,6 +94,21 @@ class PostViewHolder(
                 }
             }
         }
+    }
+
+    private fun formatPublished(time: Long): String {
+        if (time <= 0L) {
+            return ""
+        }
+        val millis = if (time < 100000000000L) {
+            time * 1000
+        } else {
+            time
+        }
+        return java.time.Instant.ofEpochMilli(millis)
+            .atZone(java.time.ZoneId.systemDefault())
+            .toLocalDateTime()
+            .toString()
     }
 }
 

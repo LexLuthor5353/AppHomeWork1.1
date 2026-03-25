@@ -29,11 +29,6 @@ class NewPostFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        val postId = arguments?.getLong("postId", 0L) ?: 0L
-//        val initialContent = arguments?.getString("content") ?: ""
-//
-//        binding.content.setText(initialContent)
-//        binding.content.setSelection(initialContent.length)
         val postId = arguments?.getLong("postId", 0L) ?: 0L
         var text = arguments?.getString("content") ?: ""
         if (postId == 0L && text.isBlank()) {

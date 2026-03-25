@@ -12,7 +12,7 @@ private val empty = Post(
     id = 0L,
     author = "",
     content = "",
-    published = ""
+    published = 0L
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
@@ -29,12 +29,13 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         val post = editor.value ?: empty
         val trimmedContent = content.trim()
         val videoLink = extractVideoLink(trimmedContent)
+        val currentUnixTime = System.currentTimeMillis() / 1000
 
         val newPost = post.copy(
             content = trimmedContent,
             videolink = videoLink,
             author = if (post.id == 0L) "Me" else post.author,
-            published = if (post.id == 0L) "Сейчас" else post.published
+            published = if (post.id == 0L) currentUnixTime else post.published
         )
 
         repository.save(newPost)
