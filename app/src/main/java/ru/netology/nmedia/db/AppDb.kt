@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.entity.PostEntity
-@Database(entities = [PostEntity::class], version = 2)
+@Database(entities = [PostEntity::class], version = 3)
 abstract class AppDb : RoomDatabase() {
     abstract fun postDao(): PostDao
 
