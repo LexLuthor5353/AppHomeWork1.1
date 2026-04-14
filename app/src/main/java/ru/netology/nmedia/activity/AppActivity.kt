@@ -3,8 +3,13 @@ package ru.netology.nmedia.activity
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -12,8 +17,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.findNavController
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import okhttp3.Call
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.ActivityAppBinding
+import java.util.concurrent.TimeUnit
 
 class AppActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAppBinding
@@ -35,7 +44,8 @@ class AppActivity : AppCompatActivity() {
 
             val text = it.getStringExtra(Intent.EXTRA_TEXT)
             if (text.isNullOrBlank()) {
-                Snackbar.make(binding.root, R.string.error_empty_content,
+                Snackbar.make(
+                    binding.root, R.string.error_empty_content,
                     BaseTransientBottomBar.LENGTH_INDEFINITE
                 )
                     .setAction(android.R.string.ok) {
@@ -54,14 +64,15 @@ class AppActivity : AppCompatActivity() {
         }
         requestNotificationsPermission()
     }
+
     private fun requestNotificationsPermission() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return
         }
         val permission = Manifest.permission.POST_NOTIFICATIONS
-        if(checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
             return
         }
-        requestPermissions(arrayOf(permission),1)
+        requestPermissions(arrayOf(permission), 1)
     }
 }

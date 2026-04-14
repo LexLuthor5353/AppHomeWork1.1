@@ -11,5 +11,6 @@ data class Post(
     val share: Long = 0L,
     val shared: Boolean = false,
     val view: Long = 0L,
-    val videolink: String? = null
+    val videolink: String? = null,
+    val attachment: Attachment? = null,
 )

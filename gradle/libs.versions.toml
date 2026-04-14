@@ -22,6 +22,7 @@ playServices = "18.10.0"
 desugaring = "2.1.5"
 googleServices = "4.4.4"
 lifecycle = "2.9.0"
+glide = "4.16.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +46,7 @@ play-services = { group = "com.google.android.gms", name = "play-services-base",
 firebase = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase" }
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

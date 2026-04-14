@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     implementation(libs.okhttp)
+    implementation(libs.glide)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     ksp(libs.androidx.room.compiler)
