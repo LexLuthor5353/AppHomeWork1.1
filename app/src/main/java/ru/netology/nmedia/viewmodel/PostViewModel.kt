@@ -20,6 +20,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = db.postDao()
     private val repository: PostRepository = PostRepositoryImpl(dao)
     val data = repository.getAll()
+    val error = repository.getError()
     val editor = MutableLiveData(empty)
     fun likeById(id: Long) = repository.likeById(id)
     fun sharedById(id: Long) = repository.sharedById(id)
@@ -48,6 +49,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun clearEditor() {
         editor.value = empty
+    }
+
+    fun retry() {
+        repository.retry()
     }
 
     private fun extractVideoLink(content: String): String? {

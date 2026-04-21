@@ -13,6 +13,7 @@ fragment = "1.8.9"
 constraintlayout = "2.2.1"
 engageCore = "1.5.11"
 okhttp = "5.3.2"
+retrofit = "3.0.0"
 roomRuntimeAndroid = "2.8.4"
 navigationFragmentKtx = "2.9.7"
 navigationUiKtx = "2.9.7"
@@ -42,6 +43,8 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomRuntimeAndroid" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 play-services = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServices" }
 firebase = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase" }
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring" }
