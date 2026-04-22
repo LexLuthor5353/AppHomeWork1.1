@@ -1,36 +1,21 @@
 package ru.netology.nmedia.repository
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import java.io.IOException
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
-import java.util.concurrent.TimeUnit
-
 
 class PostRepositoryImpl(
     private val dao: PostDao
 ) : PostRepository {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .build()
-    private val gson = Gson()
-    private val typeToken = object : TypeToken<List<Post>>() {}
-
-    companion object {
-        private const val BASE_URL = "http://10.0.2.2:9999"
-        private val jsonType = "application/json".toMediaType()
-    }
+    private val api = PostApi.service
+    private val error = MutableLiveData(false)
 
     private val data: LiveData<List<Post>> = dao.getAll().map { entities ->
         entities.map { it.toDto() }
@@ -42,22 +27,21 @@ class PostRepositoryImpl(
 
     override fun getAll(): LiveData<List<Post>> = data
 
-    private fun refresh() {
-        val request = Request.Builder()
-            .url("${BASE_URL}/api/slow/posts")
-            .build()
+    override fun getError(): LiveData<Boolean> = error
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+    private fun refresh() {
+        api.getAll().enqueue(object : Callback<List<Post>> {
+            override fun onFailure(call: Call<List<Post>>, t: Throwable) {
+                error.postValue(true)
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) return
-                    val body = resp.body.string()
-                    val posts = gson.fromJson<List<Post>>(body, typeToken.type)
-                    dao.insert(posts.map(PostEntity::fromDto))
+            override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
+                if (response.isSuccessful) {
+                    val posts = response.body().orEmpty()
+                    dao.insert(posts.map { PostEntity.fromDto(it) })
+                    error.postValue(false)
+                } else {
+                    error.postValue(true)
                 }
             }
         })
@@ -65,72 +49,58 @@ class PostRepositoryImpl(
 
     override fun likeById(id: Long) {
         val post = dao.getById(id) ?: return
-
-        val request = if (post.likedByMe) {
-            Request.Builder()
-                .delete()
-                .url("${BASE_URL}/api/posts/$id/likes")
-                .build()
+        val call = if (post.likedByMe) {
+            api.dislikeById(id)
         } else {
-            Request.Builder()
-                .post("".toRequestBody(jsonType))
-                .url("${BASE_URL}/api/posts/$id/likes")
-                .build()
+            api.likeById(id)
         }
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+        call.enqueue(object : Callback<Post> {
+            override fun onFailure(call: Call<Post>, t: Throwable) {
+                error.postValue(true)
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) return
-                    val body = resp.body.string()
-                    val updatedPost = gson.fromJson(body, Post::class.java)
+            override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                if (response.isSuccessful) {
+                    val updatedPost = response.body() ?: return
                     dao.insert(PostEntity.fromDto(updatedPost))
+                    error.postValue(false)
+                } else {
+                    error.postValue(true)
                 }
             }
         })
     }
 
     override fun save(post: Post) {
-        val request = Request.Builder()
-            .post(gson.toJson(post).toRequestBody(jsonType))
-            .url("${BASE_URL}/api/slow/posts")
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+        api.save(post).enqueue(object : Callback<Post> {
+            override fun onFailure(call: Call<Post>, t: Throwable) {
+                error.postValue(true)
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) return
-                    val body = resp.body.string()
-                    val savedPost = gson.fromJson(body, Post::class.java)
+            override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                if (response.isSuccessful) {
+                    val savedPost = response.body() ?: return
                     dao.insert(PostEntity.fromDto(savedPost))
+                    error.postValue(false)
+                } else {
+                    error.postValue(true)
                 }
             }
         })
     }
 
     override fun removeById(id: Long) {
-        val request = Request.Builder()
-            .delete()
-            .url("${BASE_URL}/api/slow/posts/$id")
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+        api.removeById(id).enqueue(object : Callback<Unit> {
+            override fun onFailure(call: Call<Unit>, t: Throwable) {
+                error.postValue(true)
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) return
+            override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+                if (response.isSuccessful) {
                     dao.removeById(id)
+                    error.postValue(false)
+                } else {
+                    error.postValue(true)
                 }
             }
         })
@@ -138,5 +108,9 @@ class PostRepositoryImpl(
 
     override fun sharedById(id: Long) {
         dao.share(id)
+    }
+
+    override fun retry() {
+        refresh()
     }
 }
