@@ -12,6 +12,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
@@ -47,7 +54,7 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            setAvatar(avatar, post.authorAvatar)
+            setAvatar(avatar, post.author, post.authorAvatar)
             published.text = formatPublished(post.published)
             content.text = post.content
             like.isChecked = post.likedByMe
@@ -60,10 +67,7 @@ class PostViewHolder(
             if (att != null && att.type.equals("IMAGE", ignoreCase = true) && att.url.isNotBlank()) {
                 postAttachmentBlock.visibility = View.VISIBLE
                 val imageUrl = attachmentImageUrl(att.url)
-                Glide.with(postAttachmentImage)
-                    .load(imageUrl)
-                    .centerCrop()
-                    .into(postAttachmentImage)
+                loadAttachmentWithRetry(postAttachmentImage, imageUrl)
                 if (att.description.isNotBlank()) {
                     postAttachmentDescription.visibility = View.VISIBLE
                     postAttachmentDescription.text = att.description
@@ -122,39 +126,132 @@ class PostViewHolder(
         }
     }
 
-    private fun setAvatar(avatarView: ImageView, authorAvatar: String) {
-        val name = authorAvatar.trim()
-        if (name.isBlank() || name.startsWith("@")) {
+    private fun setAvatar(avatarView: ImageView, author: String, authorAvatar: String) {
+        if (author == "Me" || author == "Netology") {
             Glide.with(avatarView)
-                .load(R.drawable.post_avatar_drawable)
+                .load(R.drawable.post_avatar_drawable_inset)
                 .circleCrop()
                 .into(avatarView)
             return
         }
-        val url = if (name.startsWith("http://") || name.startsWith("https://")) {
-            name
-        } else if (name.startsWith("/")) {
+        val name = authorAvatar.trim()
+        if (name.isBlank()) {
+            Glide.with(avatarView).clear(avatarView)
+            avatarView.setImageDrawable(null)
+            return
+        }
+        if (name.startsWith("@")) {
+            Glide.with(avatarView).clear(avatarView)
+            avatarView.setImageDrawable(null)
+            return
+        }
+        if (name.startsWith("http://") || name.startsWith("https://")) {
+            val normalized = normalizeHost(name)
+            Glide.with(avatarView)
+                .clear(avatarView)
+            loadAvatarWithRetry(avatarView, normalized)
+            return
+        }
+        val url = if (name.startsWith("/")) {
             BASE_URL + name
         } else {
             "$BASE_URL/avatars/$name"
         }
-        Glide.with(avatarView)
-            .load(url)
-            .placeholder(R.drawable.post_avatar_drawable)
-            .error(R.drawable.post_avatar_drawable)
-            .circleCrop()
-            .into(avatarView)
+        Glide.with(avatarView).clear(avatarView)
+        loadAvatarWithRetry(avatarView, url)
     }
 
     private fun attachmentImageUrl(raw: String): String {
         val u = raw.trim()
         if (u.startsWith("http://") || u.startsWith("https://")) {
-            return u
+            return normalizeHost(u)
         }
         if (u.startsWith("/")) {
             return BASE_URL + u
         }
         return "$BASE_URL/images/$u"
+    }
+
+    private fun normalizeHost(url: String): String {
+        return url
+            .replace("://localhost:", "://10.0.2.2:")
+            .replace("://127.0.0.1:", "://10.0.2.2:")
+    }
+
+    private fun loadAvatarWithRetry(imageView: ImageView, url: String, tryCount: Int = 0) {
+        Glide.with(imageView)
+            .load(toGlideUrl(url))
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+            .circleCrop()
+            .listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<android.graphics.drawable.Drawable>,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    if (tryCount < 6) {
+                        imageView.post { loadAvatarWithRetry(imageView, url, tryCount + 1) }
+                    } else {
+                        imageView.setImageDrawable(null)
+                    }
+                    return true
+                }
+
+                override fun onResourceReady(
+                    resource: android.graphics.drawable.Drawable,
+                    model: Any,
+                    target: Target<android.graphics.drawable.Drawable>?,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    return false
+                }
+            })
+            .into(imageView)
+    }
+
+    private fun loadAttachmentWithRetry(imageView: ImageView, url: String, tryCount: Int = 0) {
+        Glide.with(imageView)
+            .load(toGlideUrl(url))
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+            .centerCrop()
+            .listener(object : RequestListener<android.graphics.drawable.Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<android.graphics.drawable.Drawable>,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    if (tryCount < 6) {
+                        imageView.post { loadAttachmentWithRetry(imageView, url, tryCount + 1) }
+                    } else {
+                        imageView.setImageDrawable(null)
+                    }
+                    return true
+                }
+
+                override fun onResourceReady(
+                    resource: android.graphics.drawable.Drawable,
+                    model: Any,
+                    target: Target<android.graphics.drawable.Drawable>?,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    return false
+                }
+            })
+            .into(imageView)
+    }
+
+    private fun toGlideUrl(url: String): GlideUrl {
+        val headers = LazyHeaders.Builder()
+            .addHeader("Accept", "image/*")
+            .addHeader("User-Agent", "Mozilla/5.0 (Android)")
+            .build()
+        return GlideUrl(url, headers)
     }
 
     companion object {

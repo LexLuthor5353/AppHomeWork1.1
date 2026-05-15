@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -76,6 +77,16 @@ class FeedFragment : Fragment() {
         viewModel.data.observe(viewLifecycleOwner) { posts ->
             Log.d("FeedFragment", "Received ${posts.size} posts from ViewModel")
             adapter.submitList(posts)
+        }
+
+        viewModel.error.observe(viewLifecycleOwner) { hasError ->
+            if (hasError) {
+                Snackbar.make(binding.root, R.string.network_error, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.retry) {
+                        viewModel.retry()
+                    }
+                    .show()
+            }
         }
 
         binding.fab.setOnClickListener {
