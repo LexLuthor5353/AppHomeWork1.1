@@ -10,6 +10,7 @@
     <string name="description_post_menu" translatable="false">Post menu</string>
     <string name="description_post_attachment" translatable="false">Post image attachment</string>
     <string name="description_like_button">Лайк</string>
+    <string name="description_post_sync_status" translatable="false">Post sync status</string>
     <string name="blank_text_error">Текст пустой</string>
     <string name="error_empty_content">Не удалось получить текст</string>
     <string name="channel_remote_name" translatable="false">Уведомления</string>

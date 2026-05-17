@@ -1,28 +1,28 @@
 package ru.netology.nmedia.adapter
 
 import android.content.Intent
+import android.graphics.Outline
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.net.toUri
+import androidx.core.view.doOnLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.model.GlideUrl
-import com.bumptech.glide.load.model.LazyHeaders
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
+import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.enumeration.AttachmentType
 import ru.netology.nmedia.formatCount
+import ru.netology.nmedia.view.clearImage
+import ru.netology.nmedia.view.loadCircleCrop
+import ru.netology.nmedia.view.loadUrl
 
 interface OnInteractionListener {
     fun onLike(post: Post)
@@ -57,6 +57,19 @@ class PostViewHolder(
             setAvatar(avatar, post.author, post.authorAvatar)
             published.text = formatPublished(post.published)
             content.text = post.content
+
+            if (!post.synced) {
+                syncStatus.visibility = View.VISIBLE
+                syncStatus.setImageResource(
+                    if (post.syncFailed) R.drawable.ic_sync_error_24
+                    else R.drawable.ic_sync_pending_24
+                )
+            } else {
+                syncStatus.visibility = View.GONE
+            }
+
+            like.isEnabled = post.synced
+            like.alpha = if (post.synced) 1f else 0.5f
             like.isChecked = post.likedByMe
             like.text = post.likes.formatCount()
             share.isChecked = post.shared
@@ -64,11 +77,11 @@ class PostViewHolder(
             countview.text = post.view.formatCount()
 
             val att = post.attachment
-            if (att != null && att.type.equals("IMAGE", ignoreCase = true) && att.url.isNotBlank()) {
+            if (att != null && att.type == AttachmentType.IMAGE && att.url.isNotBlank()) {
                 postAttachmentBlock.visibility = View.VISIBLE
-                val imageUrl = attachmentImageUrl(att.url)
-                loadAttachmentWithRetry(postAttachmentImage, imageUrl)
-                if (att.description.isNotBlank()) {
+                postAttachmentImage.scaleType = ImageView.ScaleType.CENTER_CROP
+                postAttachmentImage.loadUrl("${BuildConfig.BASE_URL}/images/${att.url}")
+                if (!att.description.isNullOrBlank()) {
                     postAttachmentDescription.visibility = View.VISIBLE
                     postAttachmentDescription.text = att.description
                     postAttachmentImage.contentDescription = att.description
@@ -78,15 +91,15 @@ class PostViewHolder(
                         postAttachmentImage.context.getString(R.string.description_post_attachment)
                 }
             } else {
-                Glide.with(postAttachmentImage).clear(postAttachmentImage)
+                postAttachmentImage.clearImage()
                 postAttachmentBlock.visibility = View.GONE
                 postAttachmentDescription.text = ""
             }
 
             videoContainer.visibility = if (post.videolink != null && post.videolink.isNotBlank()) {
-                android.view.View.VISIBLE
+                View.VISIBLE
             } else {
-                android.view.View.GONE
+                View.GONE
             }
 
             videoContainer.setOnClickListener {
@@ -101,7 +114,11 @@ class PostViewHolder(
                 }
             }
 
-            like.setOnClickListener { onInteractionListener.onLike(post) }
+            like.setOnClickListener {
+                if (post.synced) {
+                    onInteractionListener.onLike(post)
+                }
+            }
             share.setOnClickListener { onInteractionListener.onShare(post) }
 
             menu.setOnClickListener { view ->
@@ -126,136 +143,26 @@ class PostViewHolder(
         }
     }
 
-    private fun setAvatar(avatarView: ImageView, author: String, authorAvatar: String) {
-        if (author == "Me" || author == "Netology") {
-            Glide.with(avatarView)
-                .load(R.drawable.post_avatar_drawable_inset)
-                .circleCrop()
-                .into(avatarView)
-            return
-        }
-        val name = authorAvatar.trim()
-        if (name.isBlank()) {
-            Glide.with(avatarView).clear(avatarView)
-            avatarView.setImageDrawable(null)
-            return
-        }
-        if (name.startsWith("@")) {
-            Glide.with(avatarView).clear(avatarView)
-            avatarView.setImageDrawable(null)
-            return
-        }
-        if (name.startsWith("http://") || name.startsWith("https://")) {
-            val normalized = normalizeHost(name)
-            Glide.with(avatarView)
-                .clear(avatarView)
-            loadAvatarWithRetry(avatarView, normalized)
-            return
-        }
-        val url = if (name.startsWith("/")) {
-            BASE_URL + name
-        } else {
-            "$BASE_URL/avatars/$name"
-        }
-        Glide.with(avatarView).clear(avatarView)
-        loadAvatarWithRetry(avatarView, url)
-    }
-
-    private fun attachmentImageUrl(raw: String): String {
-        val u = raw.trim()
-        if (u.startsWith("http://") || u.startsWith("https://")) {
-            return normalizeHost(u)
-        }
-        if (u.startsWith("/")) {
-            return BASE_URL + u
-        }
-        return "$BASE_URL/images/$u"
-    }
-
-    private fun normalizeHost(url: String): String {
-        return url
-            .replace("://localhost:", "://10.0.2.2:")
-            .replace("://127.0.0.1:", "://10.0.2.2:")
-    }
-
-    private fun loadAvatarWithRetry(imageView: ImageView, url: String, tryCount: Int = 0) {
-        Glide.with(imageView)
-            .load(toGlideUrl(url))
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .circleCrop()
-            .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                override fun onLoadFailed(
-                    e: GlideException?,
-                    model: Any?,
-                    target: Target<android.graphics.drawable.Drawable>,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    if (tryCount < 6) {
-                        imageView.post { loadAvatarWithRetry(imageView, url, tryCount + 1) }
-                    } else {
-                        imageView.setImageDrawable(null)
+    private fun setAvatar(avatarView: ImageView, author: String, authorAvatar: String?) {
+        if (author == "Me") {
+            avatarView.setImageResource(R.drawable.post_avatar_drawable_inset)
+            avatarView.scaleType = ImageView.ScaleType.CENTER_CROP
+            avatarView.doOnLayout {
+                avatarView.clipToOutline = true
+                avatarView.outlineProvider = object : ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: Outline) {
+                        outline.setOval(0, 0, view.width, view.height)
                     }
-                    return true
                 }
-
-                override fun onResourceReady(
-                    resource: android.graphics.drawable.Drawable,
-                    model: Any,
-                    target: Target<android.graphics.drawable.Drawable>?,
-                    dataSource: DataSource,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    return false
-                }
-            })
-            .into(imageView)
-    }
-
-    private fun loadAttachmentWithRetry(imageView: ImageView, url: String, tryCount: Int = 0) {
-        Glide.with(imageView)
-            .load(toGlideUrl(url))
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .centerCrop()
-            .listener(object : RequestListener<android.graphics.drawable.Drawable> {
-                override fun onLoadFailed(
-                    e: GlideException?,
-                    model: Any?,
-                    target: Target<android.graphics.drawable.Drawable>,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    if (tryCount < 6) {
-                        imageView.post { loadAttachmentWithRetry(imageView, url, tryCount + 1) }
-                    } else {
-                        imageView.setImageDrawable(null)
-                    }
-                    return true
-                }
-
-                override fun onResourceReady(
-                    resource: android.graphics.drawable.Drawable,
-                    model: Any,
-                    target: Target<android.graphics.drawable.Drawable>?,
-                    dataSource: DataSource,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    return false
-                }
-            })
-            .into(imageView)
-    }
-
-    private fun toGlideUrl(url: String): GlideUrl {
-        val headers = LazyHeaders.Builder()
-            .addHeader("Accept", "image/*")
-            .addHeader("User-Agent", "Mozilla/5.0 (Android)")
-            .build()
-        return GlideUrl(url, headers)
-    }
-
-    companion object {
-        private const val BASE_URL = "http://10.0.2.2:9999"
+            }
+            return
+        }
+        val name = authorAvatar?.trim().orEmpty()
+        if (name.isEmpty()) {
+            avatarView.clearImage()
+            return
+        }
+        avatarView.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/$name")
     }
 
     private fun formatPublished(time: Long): String {

@@ -1,142 +1,163 @@
 package ru.netology.nmedia.repository
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import java.io.IOException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import ru.netology.nmedia.api.PostsApi
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
-import java.util.concurrent.TimeUnit
-
 
 class PostRepositoryImpl(
-    private val dao: PostDao
+    private val dao: PostDao,
 ) : PostRepository {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .build()
-    private val gson = Gson()
-    private val typeToken = object : TypeToken<List<Post>>() {}
+    private val _error = MutableLiveData(false)
+    private val scope = CoroutineScope(Dispatchers.IO)
 
-    companion object {
-        private const val BASE_URL = "http://10.0.2.2:9999"
-        private val jsonType = "application/json".toMediaType()
-    }
-
-    private val data: LiveData<List<Post>> = dao.getAll().map { entities ->
-        entities.map { it.toDto() }
+    override val data: LiveData<List<Post>> = dao.getAll().map { list ->
+        list.map { it.toDto() }
     }
 
     init {
-        refresh()
-    }
-
-    override fun getAll(): LiveData<List<Post>> = data
-
-    private fun refresh() {
-        val request = Request.Builder()
-            .url("${BASE_URL}/api/slow/posts")
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) return
-                    val body = resp.body.string()
-                    val posts = gson.fromJson<List<Post>>(body, typeToken.type)
-                    dao.insert(posts.map(PostEntity::fromDto))
-                }
-            }
-        })
-    }
-
-    override fun likeById(id: Long) {
-        val post = dao.getById(id) ?: return
-
-        val request = if (post.likedByMe) {
-            Request.Builder()
-                .delete()
-                .url("${BASE_URL}/api/posts/$id/likes")
-                .build()
-        } else {
-            Request.Builder()
-                .post("".toRequestBody(jsonType))
-                .url("${BASE_URL}/api/posts/$id/likes")
-                .build()
+        scope.launch {
+            load()
         }
+    }
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-            }
+    override fun getError(): LiveData<Boolean> = _error
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) return
-                    val body = resp.body.string()
-                    val updatedPost = gson.fromJson(body, Post::class.java)
-                    dao.insert(PostEntity.fromDto(updatedPost))
-                }
+    override fun retry() {
+        _error.value = false
+        scope.launch {
+            load()
+            syncNotSynced()
+        }
+    }
+
+    private suspend fun load() {
+        try {
+            val response = PostsApi.service.getAll()
+            if (!response.isSuccessful) {
+                _error.postValue(true)
+                return
             }
-        })
+            _error.postValue(false)
+            val posts = response.body() ?: return
+            dao.removeAllSynced()
+            dao.insert(posts.map(PostEntity::fromDto))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _error.postValue(true)
+        }
     }
 
     override fun save(post: Post) {
-        val request = Request.Builder()
-            .post(gson.toJson(post).toRequestBody(jsonType))
-            .url("${BASE_URL}/api/slow/posts")
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+        scope.launch {
+            if (post.id == 0L) {
+                val localId = dao.insert(PostEntity.fromNewPost(post))
+                val entity = dao.getById(localId) ?: return@launch
+                upload(entity)
+            } else {
+                val entity = dao.getById(post.id) ?: return@launch
+                val updated = entity.copy(
+                    content = post.content,
+                    videolink = post.videolink,
+                    synced = false,
+                    syncFailed = false,
+                )
+                dao.insert(updated)
+                upload(updated)
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) return
-                    val body = resp.body.string()
-                    val savedPost = gson.fromJson(body, Post::class.java)
-                    dao.insert(PostEntity.fromDto(savedPost))
-                }
-            }
-        })
+        }
     }
 
-    override fun removeById(id: Long) {
-        val request = Request.Builder()
-            .delete()
-            .url("${BASE_URL}/api/slow/posts/$id")
-            .build()
+    private fun PostEntity.toSaveRequest(): Post {
+        val requestId = if (serverId != 0L) serverId else 0L
+        return toDto().copy(id = requestId)
+    }
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+    private suspend fun upload(entity: PostEntity) {
+        try {
+            val response = PostsApi.service.save(entity.toSaveRequest())
+            if (!response.isSuccessful) {
+                dao.insert(entity.copy(syncFailed = true))
+                _error.postValue(true)
+                return
             }
+            val body = response.body()
+            if (body == null) {
+                dao.insert(entity.copy(syncFailed = true))
+                _error.postValue(true)
+                return
+            }
+            _error.postValue(false)
+            dao.removeById(entity.id)
+            dao.insert(PostEntity.fromDto(body))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            dao.insert(entity.copy(syncFailed = true))
+            _error.postValue(true)
+        }
+    }
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (!resp.isSuccessful) return
-                    dao.removeById(id)
-                }
+    private suspend fun syncNotSynced() {
+        val list = dao.getNotSynced()
+        for (entity in list) {
+            upload(entity)
+        }
+    }
+
+    override suspend fun likeById(id: Long) {
+        val post = dao.getById(id) ?: return
+        if (!post.synced) {
+            return
+        }
+        dao.likeById(post.id)
+        try {
+            val response = if (post.likedByMe) {
+                PostsApi.service.dislikeById(post.serverId)
+            } else {
+                PostsApi.service.likeById(post.serverId)
             }
-        })
+            if (!response.isSuccessful) {
+                _error.postValue(true)
+                return
+            }
+            val body = response.body()
+            if (body != null) {
+                dao.insert(PostEntity.fromDto(body))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _error.postValue(true)
+        }
+    }
+
+    override suspend fun removeById(id: Long) {
+        val post = dao.getById(id) ?: return
+        dao.removeById(post.id)
+        if (!post.synced) {
+            return
+        }
+        try {
+            val response = PostsApi.service.removeById(post.serverId)
+            if (!response.isSuccessful) {
+                _error.postValue(true)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _error.postValue(true)
+        }
     }
 
     override fun sharedById(id: Long) {
-        dao.share(id)
+        val post = dao.getById(id) ?: return
+        if (!post.synced) {
+            return
+        }
+        dao.share(post.id)
     }
 }

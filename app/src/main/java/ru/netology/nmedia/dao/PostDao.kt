@@ -12,18 +12,22 @@ interface PostDao {
     @Query("SELECT * FROM PostEntity ORDER BY id DESC")
     fun getAll(): LiveData<List<PostEntity>>
 
-    @Query("SELECT * FROM PostEntity WHERE id = :id")
+    @Query("SELECT * FROM PostEntity WHERE id = :id OR serverId = :id")
     fun getById(id: Long): PostEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(post: PostEntity)
+    @Query("SELECT * FROM PostEntity WHERE synced = 0")
+    suspend fun getNotSynced(): List<PostEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(posts: List<PostEntity>)
+    suspend fun insert(post: PostEntity): Long
 
-    @Query("UPDATE PostEntity SET content = :text WHERE id = :id")
-    fun updateContentById(id: Long, text: String)
-    fun save(post: PostEntity) =
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(posts: List<PostEntity>)
+
+    @Query("UPDATE PostEntity SET content = :content WHERE id = :id")
+    suspend fun updateContentById(id: Long, content: String)
+
+    suspend fun save(post: PostEntity) =
         if (post.id == 0L) insert(post) else updateContentById(post.id, post.content)
 
     @Query(
@@ -36,7 +40,10 @@ interface PostDao {
     )
     fun likeById(id: Long)
     @Query("DELETE FROM PostEntity WHERE id = :id")
-    fun removeById(id: Long)
+    suspend fun removeById(id: Long)
+
+    @Query("DELETE FROM PostEntity WHERE synced = 1")
+    suspend fun removeAllSynced()
     @Query(
         """
     UPDATE PostEntity SET
