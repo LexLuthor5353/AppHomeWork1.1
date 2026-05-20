@@ -1,16 +1,13 @@
 package ru.netology.nmedia.adapter
 
 import android.content.Intent
-import android.graphics.Outline
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.net.toUri
-import androidx.core.view.doOnLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -21,7 +18,7 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.enumeration.AttachmentType
 import ru.netology.nmedia.formatCount
 import ru.netology.nmedia.view.clearImage
-import ru.netology.nmedia.view.loadCircleCrop
+import ru.netology.nmedia.view.loadAuthorAvatar
 import ru.netology.nmedia.view.loadUrl
 
 interface OnInteractionListener {
@@ -144,25 +141,12 @@ class PostViewHolder(
     }
 
     private fun setAvatar(avatarView: ImageView, author: String, authorAvatar: String?) {
-        if (author == "Me") {
-            avatarView.setImageResource(R.drawable.post_avatar_drawable_inset)
-            avatarView.scaleType = ImageView.ScaleType.CENTER_CROP
-            avatarView.doOnLayout {
-                avatarView.clipToOutline = true
-                avatarView.outlineProvider = object : ViewOutlineProvider() {
-                    override fun getOutline(view: View, outline: Outline) {
-                        outline.setOval(0, 0, view.width, view.height)
-                    }
-                }
-            }
-            return
-        }
-        val name = authorAvatar?.trim().orEmpty()
-        if (name.isEmpty()) {
-            avatarView.clearImage()
-            return
-        }
-        avatarView.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/$name")
+        avatarView.loadAuthorAvatar(
+            author,
+            authorAvatar,
+            BuildConfig.BASE_URL,
+            R.drawable.post_avatar_drawable_inset,
+        )
     }
 
     private fun formatPublished(time: Long): String {
