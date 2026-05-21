@@ -41,6 +41,17 @@
         app:layout_constraintTop_toBottomOf="@id/author"
         tools:text="@sample/posts.json/data/published" />
 
+    <ImageView
+        android:id="@+id/syncStatus"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="@string/description_post_sync_status"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/published"
+        app:layout_constraintStart_toEndOf="@id/published"
+        app:layout_constraintTop_toTopOf="@id/published" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/menu"
         style="@style/Widget.AppTheme.MenuButton"

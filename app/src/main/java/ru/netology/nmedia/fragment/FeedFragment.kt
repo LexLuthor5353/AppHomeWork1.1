@@ -74,9 +74,9 @@ class FeedFragment : Fragment() {
 
         binding.list.adapter = adapter
 
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
-            Log.d("FeedFragment", "Received ${posts.size} posts from ViewModel")
-            adapter.submitList(posts)
+        viewModel.data.observe(viewLifecycleOwner) { feed ->
+            Log.d("FeedFragment", "Received ${feed.posts.size} posts from ViewModel")
+            adapter.submitList(feed.posts)
         }
 
         viewModel.error.observe(viewLifecycleOwner) { hasError ->

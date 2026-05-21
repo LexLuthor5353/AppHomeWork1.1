@@ -4,11 +4,13 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.enumeration.AttachmentType
 
 @Entity
-class PostEntity(
+data class PostEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
+    val serverId: Long = 0L,
     val author: String = "",
     val authorAvatar: String = "",
     val content: String = "",
@@ -22,19 +24,23 @@ class PostEntity(
     val attachmentUrl: String? = null,
     val attachmentDescription: String? = null,
     val attachmentType: String? = null,
+    val synced: Boolean = true,
+    val syncFailed: Boolean = false,
 ) {
     fun toDto(): Post {
         val attachment = if (!attachmentUrl.isNullOrBlank()) {
             Attachment(
                 url = attachmentUrl,
-                description = attachmentDescription ?: "",
-                type = attachmentType ?: "",
+                description = attachmentDescription,
+                type = attachmentType?.let { runCatching { AttachmentType.valueOf(it) }.getOrNull() }
+                    ?: AttachmentType.IMAGE,
             )
         } else {
             null
         }
+        val displayId = if (serverId != 0L) serverId else id
         return Post(
-            id,
+            displayId,
             author,
             authorAvatar,
             content,
@@ -46,16 +52,20 @@ class PostEntity(
             view,
             videolink,
             attachment,
+            synced,
+            syncFailed,
         )
     }
 
     companion object {
         fun fromDto(post: Post): PostEntity {
             val a = post.attachment
+            val serverId = if (post.id != 0L) post.id else 0L
             return PostEntity(
-                post.id,
+                id = serverId,
+                serverId = serverId,
                 post.author,
-                post.authorAvatar,
+                post.authorAvatar.orEmpty(),
                 post.content,
                 post.published,
                 post.likes,
@@ -66,7 +76,32 @@ class PostEntity(
                 post.videolink,
                 a?.url?.ifBlank { null },
                 a?.description,
-                a?.type?.ifBlank { null },
+                a?.type?.name,
+                synced = true,
+                syncFailed = false,
+            )
+        }
+
+        fun fromNewPost(post: Post): PostEntity {
+            val a = post.attachment
+            return PostEntity(
+                id = 0L,
+                serverId = 0L,
+                post.author,
+                post.authorAvatar.orEmpty(),
+                post.content,
+                post.published,
+                post.likes,
+                post.likedByMe,
+                post.share,
+                post.shared,
+                post.view,
+                post.videolink,
+                a?.url?.ifBlank { null },
+                a?.description,
+                a?.type?.name,
+                synced = false,
+                syncFailed = false,
             )
         }
     }

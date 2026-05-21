@@ -17,6 +17,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:9999\"")
     }
 
     buildTypes {
@@ -47,6 +49,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -58,15 +61,15 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.engage.core)
     implementation(libs.androidx.room.runtime.android)
     implementation(libs.gson)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
-    implementation(libs.glide)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     ksp(libs.androidx.room.compiler)
@@ -75,7 +78,8 @@ dependencies {
     implementation(libs.play.services)
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.androidx.lifecycle.livedata.ktx)
-
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.glide)
 
 }
 
