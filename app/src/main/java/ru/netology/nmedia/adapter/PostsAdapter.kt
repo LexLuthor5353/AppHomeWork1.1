@@ -145,7 +145,7 @@ class PostViewHolder(
             author,
             authorAvatar,
             BuildConfig.BASE_URL,
-            R.drawable.post_avatar_drawable_inset,
+            R.drawable.post_avatar_drawable,
         )
     }
 

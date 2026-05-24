@@ -1,10 +1,13 @@
 package ru.netology.nmedia.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.api.PostsApi
 import ru.netology.nmedia.dao.PostDao
@@ -14,20 +17,42 @@ import ru.netology.nmedia.entity.PostEntity
 class PostRepositoryImpl(
     private val dao: PostDao,
 ) : PostRepository {
-    private val _error = MutableLiveData(false)
+    private val _error = MutableStateFlow(false)
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    override val data: LiveData<List<Post>> = dao.getAll().map { list ->
-        list.map { it.toDto() }
+    override val data: Flow<List<Post>> = dao.getAll()
+        .map { list -> list.map { it.toDto() } }
+        .flowOn(Dispatchers.Default)
+
+    override val newerCount: Flow<Int> = dao.countHidden()
+        .flowOn(Dispatchers.Default)
+
+    override fun getError(): Flow<Boolean> = _error
+
+    override suspend fun loadPosts() {
+        load()
     }
 
-    init {
-        scope.launch {
-            load()
+    override fun getNewer(): Flow<Unit> = flow<Unit> {
+        while (true) {
+            delay(10_000L)
+            val maxId = dao.getMaxId() ?: 0L
+            val response = PostsApi.service.getNewer(maxId)
+            if (!response.isSuccessful) {
+                _error.value = true
+                continue
+            }
+            val body = response.body() ?: continue
+            if (body.isNotEmpty()) {
+                dao.insert(body.map { PostEntity.fromDto(it, visible = false) })
+            }
+            emit(Unit)
         }
-    }
+    }.flowOn(Dispatchers.Default)
 
-    override fun getError(): LiveData<Boolean> = _error
+    override suspend fun showNewer() {
+        dao.showAllHidden()
+    }
 
     override fun retry() {
         _error.value = false
@@ -41,16 +66,16 @@ class PostRepositoryImpl(
         try {
             val response = PostsApi.service.getAll()
             if (!response.isSuccessful) {
-                _error.postValue(true)
-                return
+                _error.value = true
+                throw java.io.IOException()
             }
-            _error.postValue(false)
-            val posts = response.body() ?: return
+            _error.value = false
+            val posts = response.body() ?: throw java.io.IOException()
             dao.removeAllSynced()
             dao.insert(posts.map(PostEntity::fromDto))
         } catch (e: Exception) {
-            e.printStackTrace()
-            _error.postValue(true)
+            _error.value = true
+            throw e
         }
     }
 
@@ -84,22 +109,22 @@ class PostRepositoryImpl(
             val response = PostsApi.service.save(entity.toSaveRequest())
             if (!response.isSuccessful) {
                 dao.insert(entity.copy(syncFailed = true))
-                _error.postValue(true)
+                _error.value = true
                 return
             }
             val body = response.body()
             if (body == null) {
                 dao.insert(entity.copy(syncFailed = true))
-                _error.postValue(true)
+                _error.value = true
                 return
             }
-            _error.postValue(false)
+            _error.value = false
             dao.removeById(entity.id)
             dao.insert(PostEntity.fromDto(body))
         } catch (e: Exception) {
             e.printStackTrace()
             dao.insert(entity.copy(syncFailed = true))
-            _error.postValue(true)
+            _error.value = true
         }
     }
 
@@ -123,7 +148,7 @@ class PostRepositoryImpl(
                 PostsApi.service.likeById(post.serverId)
             }
             if (!response.isSuccessful) {
-                _error.postValue(true)
+                _error.value = true
                 return
             }
             val body = response.body()
@@ -132,7 +157,7 @@ class PostRepositoryImpl(
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            _error.postValue(true)
+            _error.value = true
         }
     }
 
@@ -145,11 +170,11 @@ class PostRepositoryImpl(
         try {
             val response = PostsApi.service.removeById(post.serverId)
             if (!response.isSuccessful) {
-                _error.postValue(true)
+                _error.value = true
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            _error.postValue(true)
+            _error.value = true
         }
     }
 

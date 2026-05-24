@@ -8,7 +8,6 @@ import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import androidx.core.view.doOnLayout
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
@@ -54,6 +53,22 @@ fun ImageView.loadCircleCrop(url: String) {
     loadUrl(url)
 }
 
+private val authorAvatarByName = mapOf(
+    "Game of Thrones" to "got.jpg",
+    "Игра престолов" to "got.jpg",
+    "Netology" to "netology.jpg",
+    "Сбер" to "sber.jpg",
+    "Тинькофф" to "tcs.jpg",
+)
+
+private fun avatarFileName(author: String, authorAvatar: String?): String? {
+    val fromServer = authorAvatar?.trim().orEmpty()
+    if (fromServer.isNotEmpty() && !fromServer.startsWith("@")) {
+        return if (fromServer.contains('.')) fromServer else "$fromServer.jpg"
+    }
+    return authorAvatarByName[author.trim()]
+}
+
 fun ImageView.loadAuthorAvatar(
     author: String,
     authorAvatar: String?,
@@ -69,24 +84,17 @@ fun ImageView.loadAuthorAvatar(
             }
         }
     }
-    val name = authorAvatar?.trim().orEmpty()
-    if (author != "Me" && name.isEmpty()) {
-        Glide.with(this).clear(this)
-        tag = null
-        setImageDrawable(null)
+    Glide.with(this).clear(this)
+    setImageDrawable(null)
+    if (author == "Me") {
+        setImageResource(fallbackDrawable)
         return
     }
-    val src = if (author == "Me") {
-        "http://127.0.0.1:9/x"
-    } else {
-        "$baseUrl/avatars/$name"
+    val file = avatarFileName(author, authorAvatar) ?: run {
+        setImageResource(fallbackDrawable)
+        return
     }
-    val req = Glide.with(this).load(src).apply(RequestOptions().circleCrop())
-    if (author == "Me") {
-        req.placeholder(fallbackDrawable).error(fallbackDrawable).fallback(fallbackDrawable).into(this)
-    } else {
-        req.into(this)
-    }
+    loadCircleCrop("$baseUrl/avatars/$file")
 }
 
 fun ImageView.clearImage() {

@@ -1,16 +1,25 @@
 package ru.netology.nmedia.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.entity.PostEntity
 
 @Dao
 interface PostDao {
-    @Query("SELECT * FROM PostEntity ORDER BY id DESC")
-    fun getAll(): LiveData<List<PostEntity>>
+    @Query("SELECT * FROM PostEntity WHERE visible = 1 ORDER BY id DESC")
+    fun getAll(): Flow<List<PostEntity>>
+
+    @Query("SELECT COUNT(*) FROM PostEntity WHERE visible = 0")
+    fun countHidden(): Flow<Int>
+
+    @Query("SELECT MAX(id) FROM PostEntity")
+    suspend fun getMaxId(): Long?
+
+    @Query("UPDATE PostEntity SET visible = 1 WHERE visible = 0")
+    suspend fun showAllHidden()
 
     @Query("SELECT * FROM PostEntity WHERE id = :id OR serverId = :id")
     fun getById(id: Long): PostEntity?
@@ -39,11 +48,13 @@ interface PostDao {
            """
     )
     fun likeById(id: Long)
+
     @Query("DELETE FROM PostEntity WHERE id = :id")
     suspend fun removeById(id: Long)
 
     @Query("DELETE FROM PostEntity WHERE synced = 1")
     suspend fun removeAllSynced()
+
     @Query(
         """
     UPDATE PostEntity SET

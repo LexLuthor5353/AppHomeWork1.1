@@ -26,6 +26,7 @@ data class PostEntity(
     val attachmentType: String? = null,
     val synced: Boolean = true,
     val syncFailed: Boolean = false,
+    val visible: Boolean = true,
 ) {
     fun toDto(): Post {
         val attachment = if (!attachmentUrl.isNullOrBlank()) {
@@ -58,7 +59,7 @@ data class PostEntity(
     }
 
     companion object {
-        fun fromDto(post: Post): PostEntity {
+        fun fromDto(post: Post, visible: Boolean = true): PostEntity {
             val a = post.attachment
             val serverId = if (post.id != 0L) post.id else 0L
             return PostEntity(
@@ -79,6 +80,7 @@ data class PostEntity(
                 a?.type?.name,
                 synced = true,
                 syncFailed = false,
+                visible = visible,
             )
         }
 
@@ -106,3 +108,7 @@ data class PostEntity(
         }
     }
 }
+
+fun List<PostEntity>.toDto(): List<Post> = map { it.toDto() }
+
+fun List<Post>.toEntity(): List<PostEntity> = map { PostEntity.fromDto(it) }
