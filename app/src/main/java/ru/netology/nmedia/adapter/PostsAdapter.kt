@@ -17,9 +17,8 @@ import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.enumeration.AttachmentType
 import ru.netology.nmedia.formatCount
-import ru.netology.nmedia.view.clearImage
-import ru.netology.nmedia.view.loadAuthorAvatar
-import ru.netology.nmedia.view.loadUrl
+import ru.netology.nmedia.view.load
+import ru.netology.nmedia.view.loadCircleCrop
 
 interface OnInteractionListener {
     fun onLike(post: Post)
@@ -51,7 +50,29 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            setAvatar(avatar, post.author, post.authorAvatar)
+            if (post.author == "Me") {
+                avatar.setImageResource(R.drawable.post_avatar_drawable)
+            } else {
+                val av = post.authorAvatar?.trim().orEmpty()
+                if (av.isNotEmpty() && !av.startsWith("@")) {
+                    val file = if (av.contains('.')) av else "$av.jpg"
+                    avatar.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/$file")
+                } else {
+                    val file = when (post.author.trim()) {
+                        "Game of Thrones", "Игра престолов" -> "got.jpg"
+                        "Netology" -> "netology.jpg"
+                        "Нетология. Университет интернет-профессий будущего" -> "netology.jpg"
+                        "Сбер" -> "sber.jpg"
+                        "Тинькофф" -> "tcs.jpg"
+                        else -> null
+                    }
+                    if (file == null) {
+                        avatar.setImageResource(R.drawable.post_avatar_drawable)
+                    } else {
+                        avatar.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/$file")
+                    }
+                }
+            }
             published.text = formatPublished(post.published)
             content.text = post.content
 
@@ -77,7 +98,7 @@ class PostViewHolder(
             if (att != null && att.type == AttachmentType.IMAGE && att.url.isNotBlank()) {
                 postAttachmentBlock.visibility = View.VISIBLE
                 postAttachmentImage.scaleType = ImageView.ScaleType.CENTER_CROP
-                postAttachmentImage.loadUrl("${BuildConfig.BASE_URL}/images/${att.url}")
+                postAttachmentImage.load("${BuildConfig.BASE_URL}/images/${att.url}")
                 if (!att.description.isNullOrBlank()) {
                     postAttachmentDescription.visibility = View.VISIBLE
                     postAttachmentDescription.text = att.description
@@ -88,7 +109,7 @@ class PostViewHolder(
                         postAttachmentImage.context.getString(R.string.description_post_attachment)
                 }
             } else {
-                postAttachmentImage.clearImage()
+                postAttachmentImage.setImageDrawable(null)
                 postAttachmentBlock.visibility = View.GONE
                 postAttachmentDescription.text = ""
             }
@@ -138,15 +159,6 @@ class PostViewHolder(
                 }
             }
         }
-    }
-
-    private fun setAvatar(avatarView: ImageView, author: String, authorAvatar: String?) {
-        avatarView.loadAuthorAvatar(
-            author,
-            authorAvatar,
-            BuildConfig.BASE_URL,
-            R.drawable.post_avatar_drawable,
-        )
     }
 
     private fun formatPublished(time: Long): String {

@@ -5,6 +5,10 @@
     <string name="remove">Удалить!</string>
     <string name="empty_text">Текст пустой!</string>
     <string name="content">Введите текст</string>
+    <string name="menu_save">Сохранить</string>
+    <string name="description_photo" translatable="false">Photo preview</string>
+    <string name="description_select_photo" translatable="false">Select photo</string>
+    <string name="description_take_photo" translatable="false">Take photo</string>
     <string name="edit">Редактировать</string>
     <string name="description_post_author_avatar" translatable="false">Post author avatar</string>
     <string name="description_post_menu" translatable="false">Post menu</string>
