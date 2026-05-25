@@ -10,13 +10,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import android.net.Uri
 import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
+import java.io.File
 
 private val empty = Post(
     id = 0L,
@@ -49,6 +52,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated
+
+    private val _photoUri = MutableLiveData<Uri?>(null)
+    val photoUri: LiveData<Uri?> = _photoUri
+    private var photoFile: File? = null
 
     init {
         loadPosts()
@@ -93,7 +100,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                         author = if (post.id == 0L) "Me" else post.author,
                         published = if (post.id == 0L) System.currentTimeMillis() / 1000 else post.published,
                     )
-                    repository.save(newPost)
+                    val file = photoFile
+                    if (file == null) {
+                        repository.save(newPost)
+                    } else {
+                        repository.saveWithAttachment(newPost, MediaUpload(file))
+                    }
                     _dataState.value = FeedModelState()
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -102,10 +114,19 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         edited.value = empty
+        _photoUri.value = null
+        photoFile = null
+    }
+
+    fun changePhoto(uri: Uri?, file: File?) {
+        _photoUri.value = uri
+        photoFile = file
     }
 
     fun edit(post: Post) {
         edited.value = post
+        _photoUri.value = null
+        photoFile = null
     }
 
     fun changeContent(content: String) {
