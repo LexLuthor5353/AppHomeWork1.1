@@ -13,7 +13,15 @@
         <action
             android:id="@+id/action_feedFragment_to_newPostFragment"
             app:destination="@id/newPostFragment" />
+        <action
+            android:id="@+id/action_feedFragment_to_photoFragment"
+            app:destination="@id/photoFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/photoFragment"
+        android:name="ru.netology.nmedia.activity.PhotoFragment"
+        android:label="fragment_photo"
+        tools:layout="@layout/fragment_photo" />
     <fragment
         android:id="@+id/newPostFragment"
         android:name="ru.netology.nmedia.activity.NewPostFragment"

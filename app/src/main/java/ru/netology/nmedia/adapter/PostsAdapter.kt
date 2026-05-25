@@ -25,6 +25,7 @@ interface OnInteractionListener {
     fun onShare(post: Post)
     fun onEdit(post: Post)
     fun onRemove(post: Post)
+    fun onPhoto(imageUrl: String)
 }
 
 class PostsAdapter(
@@ -50,7 +51,7 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            if (post.author == "Me") {
+            if (post.author == "Тони Пуля в зубах") {
                 avatar.setImageResource(R.drawable.post_avatar_drawable)
             } else {
                 val av = post.authorAvatar?.trim().orEmpty()
@@ -98,7 +99,11 @@ class PostViewHolder(
             if (att != null && att.type == AttachmentType.IMAGE && att.url.isNotBlank()) {
                 postAttachmentBlock.visibility = View.VISIBLE
                 postAttachmentImage.scaleType = ImageView.ScaleType.CENTER_CROP
-                postAttachmentImage.load("${BuildConfig.BASE_URL}/images/${att.url}")
+                val url = "${BuildConfig.BASE_URL}/media/${att.url}"
+                postAttachmentImage.load(url)
+                postAttachmentImage.setOnClickListener {
+                    onInteractionListener.onPhoto(url)
+                }
                 if (!att.description.isNullOrBlank()) {
                     postAttachmentDescription.visibility = View.VISIBLE
                     postAttachmentDescription.text = att.description
@@ -109,6 +114,7 @@ class PostViewHolder(
                         postAttachmentImage.context.getString(R.string.description_post_attachment)
                 }
             } else {
+                postAttachmentImage.setOnClickListener(null)
                 postAttachmentImage.setImageDrawable(null)
                 postAttachmentBlock.visibility = View.GONE
                 postAttachmentDescription.text = ""
