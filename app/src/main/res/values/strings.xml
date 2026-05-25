@@ -20,4 +20,8 @@
     <string name="tap_to_read_full" translatable="false">Прочесть полностью!</string>
     <string name="network_error" translatable="false">Ошибка при получении данных</string>
     <string name="retry" translatable="false">Повторить</string>
+    <string name="error_loading" translatable="false">Ошибка загрузки</string>
+    <string name="retry_loading" translatable="false">Повторить</string>
+    <string name="chooser_share_post" translatable="false">Поделиться постом</string>
+    <string name="newer_posts" translatable="false">Свежие записи</string>
 </resources>
