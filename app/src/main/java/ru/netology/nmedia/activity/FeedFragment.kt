@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -13,7 +14,6 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
-import ru.netology.nmedia.activity.PhotoFragment.Companion.imageUrl
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -33,6 +33,9 @@ class FeedFragment : Fragment() {
 
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
+                if (!post.ownedByMe) {
+                    return
+                }
                 viewModel.edit(post)
                 findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
             }
@@ -42,6 +45,9 @@ class FeedFragment : Fragment() {
             }
 
             override fun onRemove(post: Post) {
+                if (!post.ownedByMe) {
+                    return
+                }
                 viewModel.removeById(post.id)
             }
 
@@ -55,15 +61,6 @@ class FeedFragment : Fragment() {
                 val shareIntent =
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
-            }
-
-            override fun onPhoto(url: String) {
-                findNavController().navigate(
-                    R.id.action_feedFragment_to_photoFragment,
-                    Bundle().apply {
-                        imageUrl = url
-                    }
-                )
             }
         })
         binding.list.adapter = adapter
@@ -95,6 +92,20 @@ class FeedFragment : Fragment() {
         }
 
         binding.fab.setOnClickListener {
+            viewModel.onFabClick()
+        }
+
+        viewModel.needAuth.observe(viewLifecycleOwner) {
+            MaterialAlertDialogBuilder(requireContext(), R.style.RoundDialog)
+                .setMessage(R.string.auth_required)
+                .setPositiveButton(R.string.sign_in) { _, _ ->
+                    findNavController().navigate(R.id.action_global_loginFragment)
+                }
+                .setNegativeButton(R.string.not_now, null)
+                .show()
+        }
+
+        viewModel.openNewPost.observe(viewLifecycleOwner) {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
         }
 

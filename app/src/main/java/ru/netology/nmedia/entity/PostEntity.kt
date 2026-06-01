@@ -11,6 +11,7 @@ data class PostEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
     val serverId: Long = 0L,
+    val authorId: Long = 0L,
     val author: String = "",
     val authorAvatar: String = "",
     val content: String = "",
@@ -42,6 +43,7 @@ data class PostEntity(
         val displayId = if (serverId != 0L) serverId else id
         return Post(
             displayId,
+            authorId,
             author,
             authorAvatar,
             content,
@@ -65,6 +67,7 @@ data class PostEntity(
             return PostEntity(
                 id = serverId,
                 serverId = serverId,
+                authorId = post.authorId,
                 post.author,
                 post.authorAvatar.orEmpty(),
                 post.content,
@@ -89,6 +92,7 @@ data class PostEntity(
             return PostEntity(
                 id = 0L,
                 serverId = 0L,
+                authorId = post.authorId,
                 post.author,
                 post.authorAvatar.orEmpty(),
                 post.content,

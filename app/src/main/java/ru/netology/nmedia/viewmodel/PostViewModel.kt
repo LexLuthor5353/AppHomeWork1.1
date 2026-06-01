@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import android.net.Uri
+import kotlinx.coroutines.flow.flatMapLatest
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
@@ -25,19 +27,23 @@ private val empty = Post(
     id = 0L,
     author = "",
     content = "",
-    published = 0L
+    published = 0,
+    ownedByMe = false
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(application).postDao())
 
-    val data: LiveData<FeedModel> = repository.data
-        .map { posts ->
-            FeedModel(
-                posts = posts,
-                empty = posts.isEmpty(),
-            )
+    val data: LiveData<FeedModel> = AppAuth.getInstance().authState
+        .flatMapLatest { auth ->
+            repository.data
+                .map { posts ->
+                    posts.map {
+                        it.copy(ownedByMe = auth.id != 0L && auth.id == it.authorId)
+                    }
+                }
+                .map(::FeedModel)
         }
         .asLiveData(Dispatchers.Default)
 
@@ -52,6 +58,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated
+
+    private val _needAuth = SingleLiveEvent<Unit>()
+    val needAuth: LiveData<Unit> = _needAuth
+
+    private val _openNewPost = SingleLiveEvent<Unit>()
+    val openNewPost: LiveData<Unit> = _openNewPost
 
     private val _photoUri = MutableLiveData<Uri?>(null)
     val photoUri: LiveData<Uri?> = _photoUri
@@ -89,6 +101,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
+        if (AppAuth.getInstance().authState.value.id == 0L) {
+            return
+        }
         edited.value?.let { post ->
             _postCreated.value = Unit
             viewModelScope.launch {
@@ -124,6 +139,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun edit(post: Post) {
+        if (!post.ownedByMe) {
+            return
+        }
         edited.value = post
         _photoUri.value = null
         photoFile = null
@@ -137,15 +155,42 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         edited.value = edited.value?.copy(content = text)
     }
 
+    fun onFabClick() {
+        if (!isLoggedIn()) {
+            _needAuth.value = Unit
+            return
+        }
+        _openNewPost.value = Unit
+    }
+
     fun likeById(id: Long) {
+        if (!isLoggedIn()) {
+            _needAuth.value = Unit
+            return
+        }
         viewModelScope.launch {
             repository.likeById(id)
         }
     }
 
+    private fun isLoggedIn(): Boolean {
+        val auth = AppAuth.getInstance().authState.value
+        if (auth.id == 0L) {
+            return false
+        }
+        if (auth.token.isNullOrEmpty()) {
+            return false
+        }
+        return true
+    }
+
     fun sharedById(id: Long) = repository.sharedById(id)
 
     fun removeById(id: Long) {
+        val post = data.value?.posts?.find { it.id == id } ?: return
+        if (!post.ownedByMe) {
+            return
+        }
         viewModelScope.launch {
             repository.removeById(id)
         }
