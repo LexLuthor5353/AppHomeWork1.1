@@ -14,6 +14,7 @@
         android:usesCleartextTraffic="${usesCleartextTraffic}"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:name=".application.NMediaApplication"
         android:theme="@style/Theme.NMedia"
         tools:targetApi="31">
 
@@ -42,8 +43,12 @@
     </application>
 
     <queries>
-<intent>
-    <action android:name="android.intent.action.VIEW" />
-    <data android:scheme="https" />
-</intent>
-</queries></manifest>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
+</manifest>

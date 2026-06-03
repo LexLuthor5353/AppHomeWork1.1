@@ -5,6 +5,11 @@
     <string name="remove">Удалить!</string>
     <string name="empty_text">Текст пустой!</string>
     <string name="content">Введите текст</string>
+    <string name="new_post" translatable="false">Новая запись</string>
+    <string name="menu_save" translatable="false">Сохранить</string>
+    <string name="description_photo" translatable="false">Photo preview</string>
+    <string name="description_select_photo" translatable="false">Select photo</string>
+    <string name="description_take_photo" translatable="false">Take photo</string>
     <string name="edit">Редактировать</string>
     <string name="description_post_author_avatar" translatable="false">Post author avatar</string>
     <string name="description_post_menu" translatable="false">Post menu</string>
@@ -24,4 +29,24 @@
     <string name="retry_loading" translatable="false">Повторить</string>
     <string name="chooser_share_post" translatable="false">Поделиться постом</string>
     <string name="newer_posts" translatable="false">Свежие записи</string>
+    <string name="sign_in" translatable="false">Войти</string>
+    <string name="sign_up" translatable="false">Зарегистрироваться</string>
+    <string name="sign_out" translatable="false">Выйти</string>
+    <string name="login_hint" translatable="false">Логин</string>
+    <string name="password_hint" translatable="false">Пароль</string>
+    <string name="wrong_login_password" translatable="false">Неверный логин или пароль</string>
+    <string name="login_empty" translatable="false">Введите логин</string>
+    <string name="password_empty" translatable="false">Введите пароль</string>
+    <string name="need_sign_in" translatable="false">Сначала войдите в аккаунт</string>
+    <string name="auth_required" translatable="false">Чтобы продолжить, войдите в аккаунт</string>
+    <string name="sign_out_confirm" translatable="false">Выйти из аккаунта? Несохранённый пост будет потерян</string>
+    <string name="yes" translatable="false">Да</string>
+    <string name="no" translatable="false">Нет</string>
+    <string name="not_now" translatable="false">Не сейчас</string>
+    <string name="name_hint" translatable="false">Имя</string>
+    <string name="confirm_password_hint" translatable="false">Подтверждение пароля</string>
+    <string name="name_empty" translatable="false">Введите имя</string>
+    <string name="passwords_not_match" translatable="false">Пароли не совпадают</string>
+    <string name="registration_error" translatable="false">Не удалось зарегистрироваться</string>
+    <string name="user_already_exists" translatable="false">Такой логин уже занят</string>
 </resources>
