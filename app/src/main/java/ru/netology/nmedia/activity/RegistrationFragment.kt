@@ -66,6 +66,11 @@ class RegistrationFragment : Fragment() {
             Snackbar.make(binding.root, R.string.passwords_not_match, Snackbar.LENGTH_LONG).show()
         }
 
+        viewModel.userExists.observe(viewLifecycleOwner) {
+            binding.loginLayout.error = getString(R.string.user_already_exists)
+            Snackbar.make(binding.root, R.string.user_already_exists, Snackbar.LENGTH_LONG).show()
+        }
+
         viewModel.registerError.observe(viewLifecycleOwner) {
             Snackbar.make(binding.root, R.string.registration_error, Snackbar.LENGTH_LONG).show()
         }

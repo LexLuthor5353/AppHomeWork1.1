@@ -18,6 +18,9 @@ class RegistrationViewModel : ViewModel() {
     private val _passwordMismatch = SingleLiveEvent<Unit>()
     val passwordMismatch: LiveData<Unit> = _passwordMismatch
 
+    private val _userExists = SingleLiveEvent<Unit>()
+    val userExists: LiveData<Unit> = _userExists
+
     private val _registerError = SingleLiveEvent<Unit>()
     val registerError: LiveData<Unit> = _registerError
 
@@ -34,7 +37,11 @@ class RegistrationViewModel : ViewModel() {
             try {
                 val response = AuthApi.service.register(login.trim(), pass, name.trim())
                 if (!response.isSuccessful) {
-                    _registerError.value = Unit
+                    if (response.code() == 400) {
+                        _userExists.value = Unit
+                    } else {
+                        _registerError.value = Unit
+                    }
                     return@launch
                 }
                 val body = response.body()
