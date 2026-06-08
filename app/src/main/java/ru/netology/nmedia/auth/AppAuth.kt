@@ -1,9 +1,17 @@
 package ru.netology.nmedia.auth
 
 import android.content.Context
+import android.util.Log
 import androidx.core.content.edit
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import ru.netology.nmedia.api.PostsApi
+import ru.netology.nmedia.dto.PushToken
 
 class AppAuth private constructor(context: Context) {
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
@@ -17,6 +25,7 @@ class AppAuth private constructor(context: Context) {
         if (id != 0L && !token.isNullOrEmpty()) {
             _authStateFlow.value = AuthState(id, token)
         }
+        sendPushToken()
     }
 
     fun setAuth(id: Long, token: String) {
@@ -25,6 +34,7 @@ class AppAuth private constructor(context: Context) {
             putLong(KEY_ID, id)
             putString(KEY_TOKEN, token)
         }
+        sendPushToken()
     }
 
     fun removeAuth() {
@@ -32,6 +42,19 @@ class AppAuth private constructor(context: Context) {
         prefs.edit {
             putLong(KEY_ID, 0)
             remove(KEY_TOKEN)
+        }
+        sendPushToken()
+    }
+
+    fun sendPushToken(token: String? = null) {
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val pushToken = token ?: FirebaseMessaging.getInstance().token.await()
+                Log.d("FCM_TOKEN", pushToken)
+                PostsApi.service.save(PushToken(pushToken))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

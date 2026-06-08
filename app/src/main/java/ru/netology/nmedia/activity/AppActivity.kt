@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -19,6 +20,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.auth.AppAuth
@@ -84,6 +87,8 @@ class AppActivity : AppCompatActivity() {
             invalidateOptionsMenu()
         }
 
+        checkGoogleApiAvailability()
+
         addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_main, menu)
@@ -131,6 +136,19 @@ class AppActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_controller) as NavHostFragment
         return navHostFragment.navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
+    private fun checkGoogleApiAvailability() {
+        val googleApi = GoogleApiAvailability.getInstance()
+        val code = googleApi.isGooglePlayServicesAvailable(this)
+        if (code == ConnectionResult.SUCCESS) {
+            return
+        }
+        if (googleApi.isUserResolvableError(code)) {
+            googleApi.getErrorDialog(this, code, 9000)?.show()
+            return
+        }
+        Toast.makeText(this, R.string.google_play_unavailable, Toast.LENGTH_LONG).show()
     }
 
     private fun requestNotificationsPermission() {

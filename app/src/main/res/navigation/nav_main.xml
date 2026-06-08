@@ -20,7 +20,7 @@
     <fragment
         android:id="@+id/photoFragment"
         android:name="ru.netology.nmedia.activity.PhotoFragment"
-        android:label="fragment_photo"
+        android:label="@string/description_photo"
         tools:layout="@layout/fragment_photo" />
     <fragment
         android:id="@+id/newPostFragment"
