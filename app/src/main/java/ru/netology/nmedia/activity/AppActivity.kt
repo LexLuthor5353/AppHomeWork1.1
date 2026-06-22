@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -19,13 +20,24 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.ActivityAppBinding
 import ru.netology.nmedia.viewmodel.AuthViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var appAuth: AppAuth
+
+    @Inject
+    lateinit var googleApiAvailability: GoogleApiAvailability
 
     private val viewModel by viewModels<AuthViewModel>()
     private lateinit var binding: ActivityAppBinding
@@ -84,13 +96,15 @@ class AppActivity : AppCompatActivity() {
             invalidateOptionsMenu()
         }
 
+        checkGoogleApiAvailability()
+
         addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_main, menu)
             }
 
             override fun onPrepareMenu(menu: Menu) {
-                val auth = AppAuth.getInstance().authState.value
+                val auth = appAuth.authStateFlow.value
                 val loggedIn = auth.id != 0L && !auth.token.isNullOrEmpty()
                 menu.setGroupVisible(R.id.unauthenticated, !loggedIn)
                 menu.setGroupVisible(R.id.authenticated, loggedIn)
@@ -111,13 +125,13 @@ class AppActivity : AppCompatActivity() {
                             AlertDialog.Builder(this@AppActivity)
                                 .setMessage(R.string.sign_out_confirm)
                                 .setPositiveButton(R.string.yes) { _, _ ->
-                                    AppAuth.getInstance().removeAuth()
+                                    appAuth.removeAuth()
                                     navController.navigateUp()
                                 }
                                 .setNegativeButton(R.string.no, null)
                                 .show()
                         } else {
-                            AppAuth.getInstance().removeAuth()
+                            appAuth.removeAuth()
                         }
                         true
                     }
@@ -131,6 +145,19 @@ class AppActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_controller) as NavHostFragment
         return navHostFragment.navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
+    private fun checkGoogleApiAvailability() {
+        val googleApi = googleApiAvailability
+        val code = googleApi.isGooglePlayServicesAvailable(this)
+        if (code == ConnectionResult.SUCCESS) {
+            return
+        }
+        if (googleApi.isUserResolvableError(code)) {
+            googleApi.getErrorDialog(this, code, 9000)?.show()
+            return
+        }
+        Toast.makeText(this, R.string.google_play_unavailable, Toast.LENGTH_LONG).show()
     }
 
     private fun requestNotificationsPermission() {

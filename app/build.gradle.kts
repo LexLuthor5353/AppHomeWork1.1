@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 android {
@@ -15,7 +16,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "ru.netology.nmedia.HiltTestRunner"
 
         buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:9999\"")
     }
@@ -74,7 +75,10 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.hilt.android.testing)
     ksp(libs.androidx.room.compiler)
+    ksp(libs.hilt.android.compiler)
+    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.10")
     implementation(platform(libs.firebase))
     implementation(libs.firebase.messaging)
     implementation(libs.play.services)
@@ -84,6 +88,8 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.imagepicker)
     implementation(libs.ucrop)
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.fragment)
 }
 
 if (file("google-services.json").exists()) {

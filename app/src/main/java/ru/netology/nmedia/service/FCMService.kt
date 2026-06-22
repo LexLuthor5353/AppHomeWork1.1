@@ -13,17 +13,22 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.AppActivity
-import kotlin.compareTo
+import ru.netology.nmedia.auth.AppAuth
 import kotlin.random.Random
-import kotlin.text.toInt
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class FCMService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var appAuth: AppAuth
 
     private val action = "action"
     private val content = "content"
+    private val recipientIdKey = "recipientId"
     private val channelId = "remote"
     private val gson = Gson()
 
@@ -42,24 +47,78 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        val actionStr = message.data[action] ?: return
-        val contentJson = message.data[content] ?: return
-
-        val action = try {
-            Action.valueOf(actionStr)
-        } catch (e: IllegalArgumentException) {
-            println("Что то пошло не так в FCM: $actionStr")
+        val data = message.data
+        val contentStr = data[content] ?: return
+        val push = parsePush(contentStr)
+        val recipientId = parseRecipientId(data) ?: push?.recipientId
+        if (!needShow(recipientId)) {
             return
         }
 
-        when (action) {
-            Action.LIKE -> handleLike(gson.fromJson(contentJson, Like::class.java))
-            Action.NEW_POST -> handleNewPost(gson.fromJson(contentJson, NewPost::class.java))
+        val actionStr = data[action]
+        if (actionStr == null) {
+            val text = push?.content ?: contentStr
+            showText(text)
+            return
+        }
+
+        val pushAction = try {
+            Action.valueOf(actionStr)
+        } catch (e: IllegalArgumentException) {
+            return
+        }
+
+        when (pushAction) {
+            Action.LIKE -> handleLike(gson.fromJson(contentStr, Like::class.java))
+            Action.NEW_POST -> handleNewPost(gson.fromJson(contentStr, NewPost::class.java))
         }
     }
 
     override fun onNewToken(token: String) {
-        println(token)
+        appAuth.sendPushToken(token)
+    }
+
+    private fun parseRecipientId(data: Map<String, String>): Long? {
+        if (!data.containsKey(recipientIdKey)) {
+            return null
+        }
+        val raw = data[recipientIdKey] ?: return null
+        if (raw == "null" || raw.isEmpty()) {
+            return null
+        }
+        return raw.toLongOrNull()
+    }
+
+    private fun needShow(recipientId: Long?): Boolean {
+        val myId = appAuth.authStateFlow.value.id
+        if (recipientId == null) {
+            return true
+        }
+        if (recipientId == myId) {
+            return true
+        }
+        appAuth.sendPushToken()
+        return false
+    }
+
+    private fun parsePush(contentStr: String): Push? {
+        return try {
+            gson.fromJson(contentStr, Push::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun showText(text: String) {
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.baseline_circle_notifications_24)
+            .setContentTitle(getString(R.string.nmedia))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .build()
+        notify(notification)
     }
 
     private fun handleLike(content: Like) {
@@ -127,6 +186,11 @@ class FCMService : FirebaseMessagingService() {
     }
 }
 
+data class Push(
+    val recipientId: Long? = null,
+    val content: String = "",
+)
+
 enum class Action {
     LIKE,
     NEW_POST
@@ -138,6 +202,7 @@ data class Like(
     val postId: Long,
     val postAuthor: String,
 )
+
 data class NewPost(
     val userId: Long,
     val userName: String,

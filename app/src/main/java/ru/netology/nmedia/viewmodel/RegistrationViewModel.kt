@@ -4,13 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import ru.netology.nmedia.api.AuthApi
+import ru.netology.nmedia.api.AuthApiService
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.IOException
+import javax.inject.Inject
 
-class RegistrationViewModel : ViewModel() {
+@HiltViewModel
+class RegistrationViewModel @Inject constructor(
+    private val api: AuthApiService,
+    private val appAuth: AppAuth,
+) : ViewModel() {
 
     private val _loading = MutableLiveData(false)
     val loading: LiveData<Boolean> = _loading
@@ -35,7 +41,7 @@ class RegistrationViewModel : ViewModel() {
         viewModelScope.launch {
             _loading.value = true
             try {
-                val response = AuthApi.service.register(login.trim(), pass, name.trim())
+                val response = api.register(login.trim(), pass, name.trim())
                 if (!response.isSuccessful) {
                     if (response.code() == 400) {
                         _userExists.value = Unit
@@ -49,7 +55,7 @@ class RegistrationViewModel : ViewModel() {
                     _registerError.value = Unit
                     return@launch
                 }
-                AppAuth.getInstance().setAuth(body.id, body.token)
+                appAuth.setAuth(body.id, body.token)
                 _registerSuccess.value = Unit
             } catch (e: IOException) {
                 e.printStackTrace()
