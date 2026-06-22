@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import ru.netology.nmedia.api.PostsApi
+import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Media
@@ -24,9 +24,13 @@ import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PostRepositoryImpl(
+@Singleton
+class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
+    private val api: ApiService,
 ) : PostRepository {
     private val _error = MutableStateFlow(false)
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -48,7 +52,7 @@ class PostRepositoryImpl(
         while (true) {
             delay(10_000L)
             val maxId = dao.getMaxId() ?: 0L
-            val response = PostsApi.service.getNewer(maxId)
+            val response = api.getNewer(maxId)
             if (!response.isSuccessful) {
                 _error.value = true
                 continue
@@ -75,7 +79,7 @@ class PostRepositoryImpl(
 
     private suspend fun load() {
         try {
-            val response = PostsApi.service.getAll()
+            val response = api.getAll()
             if (!response.isSuccessful) {
                 _error.value = true
                 throw java.io.IOException()
@@ -155,7 +159,7 @@ class PostRepositoryImpl(
                 upload.file.name,
                 upload.file.asRequestBody()
             )
-            val response = PostsApi.service.upload(media)
+            val response = api.upload(media)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -176,7 +180,7 @@ class PostRepositoryImpl(
 
     private suspend fun upload(entity: PostEntity) {
         try {
-            val response = PostsApi.service.save(entity.toSaveRequest())
+            val response = api.save(entity.toSaveRequest())
             if (!response.isSuccessful) {
                 dao.insert(entity.copy(syncFailed = true))
                 _error.value = true
@@ -213,9 +217,9 @@ class PostRepositoryImpl(
         dao.likeById(post.id)
         try {
             val response = if (post.likedByMe) {
-                PostsApi.service.dislikeById(post.serverId)
+                api.dislikeById(post.serverId)
             } else {
-                PostsApi.service.likeById(post.serverId)
+                api.likeById(post.serverId)
             }
             if (!response.isSuccessful) {
                 _error.value = true
@@ -238,7 +242,7 @@ class PostRepositoryImpl(
             return
         }
         try {
-            val response = PostsApi.service.removeById(post.serverId)
+            val response = api.removeById(post.serverId)
             if (!response.isSuccessful) {
                 _error.value = true
             }

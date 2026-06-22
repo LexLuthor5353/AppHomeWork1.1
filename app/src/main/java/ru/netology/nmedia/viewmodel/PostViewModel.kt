@@ -1,27 +1,26 @@
 package ru.netology.nmedia.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import android.net.Uri
-import kotlinx.coroutines.flow.flatMapLatest
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
+import javax.inject.Inject
 
 private val empty = Post(
     id = 0L,
@@ -31,11 +30,13 @@ private val empty = Post(
     ownedByMe = false
 )
 
-class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository =
-        PostRepositoryImpl(AppDb.getInstance(application).postDao())
+@HiltViewModel
+class PostViewModel @Inject constructor(
+    private val appAuth: AppAuth,
+    private val repository: PostRepository,
+) : ViewModel() {
 
-    val data: LiveData<FeedModel> = AppAuth.getInstance().authState
+    val data: LiveData<FeedModel> = appAuth.authStateFlow
         .flatMapLatest { auth ->
             repository.data
                 .map { posts ->
@@ -101,7 +102,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        if (AppAuth.getInstance().authState.value.id == 0L) {
+        if (appAuth.authStateFlow.value.id == 0L) {
             return
         }
         edited.value?.let { post ->
@@ -174,7 +175,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun isLoggedIn(): Boolean {
-        val auth = AppAuth.getInstance().authState.value
+        val auth = appAuth.authStateFlow.value
         if (auth.id == 0L) {
             return false
         }
